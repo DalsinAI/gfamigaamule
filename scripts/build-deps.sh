@@ -55,6 +55,12 @@ if [ "$(git -C "$C" rev-parse HEAD 2>/dev/null)" != "$CRYPTOPP_COMMIT" ]; then
     git -C "$C" init -q; git -C "$C" fetch -q --depth 1 "$CRYPTOPP_GIT" "$CRYPTOPP_COMMIT"; git -C "$C" checkout -q FETCH_HEAD
     rm -f "$SYS/lib/libcryptopp.a"
 fi
+# m68k-amigaos objects (a.out) align to 8 bytes at most: Crypto++'s 16-byte
+# table alignment (only its SIMD code needs it) becomes 8
+if ! grep -q '__AMIGA__' "$C/config_align.h"; then
+    sed -i 's/^#if defined(CRYPTOPP_CXX11_ALIGNAS)/#if defined(__AMIGA__)\n\t#define CRYPTOPP_ALIGN_DATA(x) __attribute__((aligned((x) > 8 ? 8 : (x))))\n#elif defined(CRYPTOPP_CXX11_ALIGNAS)/' "$C/config_align.h"
+    grep -q '__AMIGA__' "$C/config_align.h" || { echo "config_align.h: edit not applied"; exit 1; }
+fi
 if [ ! -f "$SYS/lib/libcryptopp.a" ]; then
     (cd "$C" && nice -n 19 make -j"$JOBS" -f GNUmakefile-cross static \
         CXX=m68k-amigaos-g++ AR=m68k-amigaos-ar RANLIB=m68k-amigaos-ranlib \
