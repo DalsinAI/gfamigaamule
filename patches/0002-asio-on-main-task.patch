@@ -1,0 +1,58 @@
+AmigaOS: Asio runs on the main task, polled by a timer (sockets belong to their task)
+
+diff --git a/src/LibSocketAsio.cpp b/src/LibSocketAsio.cpp
+index f6edb89..7ceef8f 100644
+--- a/src/LibSocketAsio.cpp
++++ b/src/LibSocketAsio.cpp
+@@ -161,7 +161,11 @@ static inline void SetTcpKeepalive(Handle native, int idleSec, int intervalSec,
+ 
+ 
+ // Number of threads in the Asio thread pool
++#ifdef __AMIGA__
++const int CAsioService::m_numberOfThreads = 1;
++#else
+ const int CAsioService::m_numberOfThreads = 4;
++#endif
+ 
+ /**
+  * ASIO Client TCP socket implementation
+@@ -1570,6 +1574,31 @@ void CLibUDPSocket::Destroy()
+  * CAsioService - ASIO event loop thread
+  */
+ 
++#ifdef __AMIGA__
++#include <wx/timer.h>
++// AmigaOS: bsdsocket.library is opened per task and a socket belongs to the
++// task that made it, so Asio can't run in threads of its own. The main task
++// runs it instead: a timer polls the io_context between GUI events.
++class CAsioServiceThread : public wxTimer {
++public:
++	CAsioServiceThread()
++	{
++		Start(10);
++	}
++
++	void Notify()
++	{
++		if (!s_io_service.stopped()) {
++			s_io_service.poll();
++		}
++	}
++
++	void Wait()
++	{
++		wxTimer::Stop();
++	}
++};
++#else
+ class CAsioServiceThread : public wxThread {
+ public:
+ 	CAsioServiceThread() : wxThread(wxTHREAD_JOINABLE)
+@@ -1593,6 +1622,7 @@ public:
+ private:
+ 	int m_threadNumber;
+ };
++#endif
+ 
+ /**
+  * The constructor starts the thread.

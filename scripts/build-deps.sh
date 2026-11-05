@@ -20,6 +20,11 @@ if [ ! -f "$SYS/include/boost/version.hpp" ] || ! grep -q "\"$(echo "$BOOST_VERS
     rm -rf "$WORK/deps/boost-$BOOST_VERSION" "$SYS/include/boost"
     tar xJf "$T" -C "$WORK/deps" "boost-$BOOST_VERSION/boost"
     mv "$WORK/deps/boost-$BOOST_VERSION/boost" "$SYS/include/boost"
+    # Asio wakes its select() with a loopback socket pair on AmigaOS, as on
+    # Windows: libnix's select() watches sockets only
+    sed -i 's/|| defined(__SYMBIAN32__)$/|| defined(__SYMBIAN32__) || defined(__AMIGA__)/' \
+        "$SYS/include/boost/asio/detail/select_interrupter.hpp"
+    [ "$(grep -c '__AMIGA__' "$SYS/include/boost/asio/detail/select_interrupter.hpp")" = 2 ] || { echo "select_interrupter.hpp: edit not applied"; exit 1; }
     # aMule's CMake looks Boost up as a CONFIG package: a header-only one
     D="$SYS/lib/cmake/Boost-$BOOST_VERSION"; mkdir -p "$D"
     cat > "$D/BoostConfig.cmake" <<CFG
