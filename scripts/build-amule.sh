@@ -41,7 +41,9 @@ if [ "$(cat "$B/.configured" 2>/dev/null)" != "$CSUM" ]; then
         -DwxWidgets_CONFIG_EXECUTABLE="$WX_SDK/bin/wx-config" \
         -DCRYPTOPP_INCLUDE_PREFIX=cryptopp -DCRYPTOPP_LIBRARY="$SYS/lib/libcryptopp.a" \
         -DCMAKE_THREAD_LIBS_INIT=-lpthread -DCMAKE_HAVE_PTHREAD_CREATE=1 -DCMAKE_USE_PTHREADS_INIT=1 -DThreads_FOUND=TRUE \
-        $OPTS > cmake.log 2>&1) || { grep -B2 -A12 'CMake Error' "$B/cmake.log" | head -80; tail -20 "$B/cmake.log"; exit 1; }
+        $OPTS > cmake.log 2>&1) || { grep -B2 -A12 'CMake Error' "$B/cmake.log" | head -40;
+        # why a compile probe failed: the compiler's own errors
+        cat "$B"/CMakeFiles/CMakeConfigureLog.yaml "$B"/CMakeFiles/CMakeError.log 2>/dev/null | grep -E 'error:|#error' | sort -u | head -40; exit 1; }
     echo "$CSUM" > "$B/.configured"
 fi
 
