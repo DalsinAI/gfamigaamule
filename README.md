@@ -4,6 +4,23 @@ aMule, the eD2k and Kad file-sharing client, for AmigaOS 3 (68040; the FPU is us
 
 aMule and the libraries it uses are fetched at build time; nothing third-party is kept in this repository.
 
+## Building
+
+```
+STOVE=~/AmiCradle/stoves/os32-gcc16-open6 OUT=out ./build-amiga.sh
+```
+
+The first run fetches the GFOpenWX Toolkit at the commit `amule.lock` pins and builds its SDK, then Crypto++ and Boost's headers, then aMule for what is left of 840 s; run it again and it goes on from where it stopped. `out/amule` appears when it links.
+
+| Where | What |
+|---|---|
+| `amule.lock` | aMule 3.0.0, Crypto++ 8.9.0, Boost 1.92.0 (headers only) and the toolkit, pinned |
+| `patches/` | aMule's changes for the Amiga |
+| `scripts/` | build-deps.sh (Crypto++, Boost), build-amule.sh |
+| `cmake/` | the m68k-amigaos toolchain and platform files |
+
+The first build is the monolithic `amule` (window app). The daemon, remote GUI, web server, UPnP, GeoIP and translations are off for now.
+
 ## Licence
 
 aMule is GPL v2 or later; the patches and build files here are under the same licence.
