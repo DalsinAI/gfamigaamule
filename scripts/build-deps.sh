@@ -12,6 +12,15 @@ PATH="$TOOLCHAIN/bin:$PATH"; export PATH
 SPECS="$HERE/scripts/m68k-soft-m68040.specs"
 FLAGS="-noixemul -m68040 -O2"
 
+# zlib's API on the system's z.library (deps/zlib): no zlib of our own
+ZS=$(cat "$HERE"/deps/zlib/* | sha256sum | cut -c1-16)
+if [ "$(cat "$SYS/lib/.zlib" 2>/dev/null)" != "$ZS" ]; then
+    m68k-amigaos-gcc $FLAGS -Wall -c "$HERE/deps/zlib/zlib_zlibrary.c" -o "$WORK/zlib_zlibrary.o"
+    rm -f "$SYS/lib/libz.a"; m68k-amigaos-ar rcs "$SYS/lib/libz.a" "$WORK/zlib_zlibrary.o"
+    cp "$HERE/deps/zlib/zlib.h" "$SYS/include/zlib.h"
+    echo "$ZS" > "$SYS/lib/.zlib"
+fi
+
 # Boost: headers only
 if [ ! -f "$SYS/include/boost/version.hpp" ] || ! grep -q "\"$(echo "$BOOST_VERSION" | tr . _ | sed 's/_0$//')\"" "$SYS/include/boost/version.hpp"; then
     T="$WORK/deps/boost-$BOOST_VERSION.tar.xz"

@@ -18,6 +18,7 @@ The first run fetches the GFOpenWX Toolkit at the commit `amule.lock` pins and b
 | `patches/` | aMule's changes for the Amiga |
 | `scripts/` | build-deps.sh (Crypto++, Boost), build-amule.sh |
 | `cmake/` | the m68k-amigaos toolchain and platform files |
+| `deps/zlib/` | zlib's API on the system's z.library (GFOpenZlib), and gz file reading through inflate |
 
 The first build is the monolithic `amule` (window app). The daemon, remote GUI, web server, UPnP, GeoIP and translations are off for now.
 
