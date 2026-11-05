@@ -12,7 +12,9 @@ set -eu
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 . "$HERE/amule.lock"
 STOVE=${STOVE:-"$HOME/AmiCradle/stoves/os32-gcc16-open6"}
-OUT="${OUT:-$HERE/build/out}"; WORK="${WORK:-$HERE/build}"; JOBS=${JOBS:-12}
+# the build tree lives outside the checkout: Cradle cleans the checkout
+# (git clean) before each job, and a build longer than one job goes on
+WORK="${WORK:-$HOME/.cache/gfamigaamule/build}"; OUT="${OUT:-$WORK/out}"; JOBS=${JOBS:-12}
 TC="$STOVE/prefix"
 command -v cmake >/dev/null || { echo "no cmake on this stove"; exit 1; }
 mkdir -p "$WORK/deps" "$OUT"
