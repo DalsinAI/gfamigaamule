@@ -14,7 +14,9 @@ HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 STOVE=${STOVE:-"$HOME/AmiCradle/stoves/os32-gcc16-open6"}
 # the build tree lives outside the checkout: Cradle cleans the checkout
 # (git clean) before each job, and a build longer than one job goes on
-WORK="${WORK:-$HOME/.cache/gfamigaamule/build}"; OUT="${OUT:-$WORK/out}"; JOBS=${JOBS:-12}
+# one tree per stove, so a build on another stove never mixes objects in
+SV=$(basename "$STOVE"); [ "$SV" = os32-gcc16-open6 ] && SV= || SV="-$SV"
+WORK="${WORK:-$HOME/.cache/gfamigaamule/build$SV}"; OUT="${OUT:-$WORK/out}"; JOBS=${JOBS:-12}
 TC="$STOVE/prefix"
 command -v cmake >/dev/null || { echo "no cmake on this stove"; exit 1; }
 mkdir -p "$WORK/deps" "$OUT"
