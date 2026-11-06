@@ -48,6 +48,8 @@ if ! "$TOOLCHAIN/bin/m68k-amigaos-g++" -noixemul -m68040 -std=gnu++17 -I"$HERE/c
 fi
 echo "asio probe: ok"
 
+# CMake's function checks only compile (no link) here, so every one
+# passes: the calls libnix lacks are named absent on the command line
 OPTS="-DBUILD_MONOLITHIC=ON -DBUILD_DAEMON=OFF -DBUILD_REMOTEGUI=OFF -DBUILD_AMULECMD=OFF -DBUILD_WEBSERVER=OFF \
  -DBUILD_ED2K=OFF -DBUILD_ALC=OFF -DBUILD_ALCC=OFF -DBUILD_CAS=OFF -DBUILD_WXCAS=OFF -DBUILD_FILEVIEW=OFF \
  -DBUILD_TESTING=OFF -DENABLE_UPNP=OFF -DENABLE_IP2COUNTRY=OFF -DENABLE_NLS=OFF -DENABLE_MMAP=OFF"
@@ -60,7 +62,7 @@ if [ "$(cat "$B/.configured" 2>/dev/null)" != "$CSUM" ]; then
         -DAMIGA_TOOLCHAIN="$TOOLCHAIN" -DAMIGA_SYSROOT="$SYS" -DAMIGA_SPECS="$HERE/scripts/m68k-soft-m68040.specs" \
         -DCMAKE_PREFIX_PATH="$SYS" -DCMAKE_BUILD_TYPE=Release \
         -DwxWidgets_CONFIG_EXECUTABLE="$WX_SDK/bin/wx-config" \
-        -DLIBATOMIC_LIBRARY=atomic -DCRYPTOPP_INCLUDE_PREFIX=cryptopp -DCRYPTOPP_VERSION=8.9.0 -DCRYPTOPP_INCLUDE_DIR="$SYS/include" -DCRYPTOPP_LIBRARY="$SYS/lib/libcryptopp.a" \
+        -DLIBATOMIC_LIBRARY=atomic -DHAVE_FALLOCATE=0 -DHAVE_POSIX_FALLOCATE=0 -DHAVE_GETRLIMIT=0 -DHAVE_SETRLIMIT=0 -DCRYPTOPP_INCLUDE_PREFIX=cryptopp -DCRYPTOPP_VERSION=8.9.0 -DCRYPTOPP_INCLUDE_DIR="$SYS/include" -DCRYPTOPP_LIBRARY="$SYS/lib/libcryptopp.a" \
         -DCMAKE_THREAD_LIBS_INIT=-lpthread -DCMAKE_HAVE_PTHREAD_CREATE=1 -DCMAKE_USE_PTHREADS_INIT=1 -DThreads_FOUND=TRUE \
         $OPTS > cmake.log 2>&1) || { grep -B2 -A12 'CMake Error' "$B/cmake.log" | head -40;
         # why a compile probe failed: the compiler's own errors
