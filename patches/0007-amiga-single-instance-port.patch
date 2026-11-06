@@ -1,0 +1,56 @@
+# AmigaOS: wx has no wxSingleInstanceChecker; a public message port named
+# after the lock tells a second aMule that one is running.
+diff --git a/src/amuleAppCommon.cpp b/src/amuleAppCommon.cpp
+index 40a05e4..c8b5935 100644
+--- a/src/amuleAppCommon.cpp
++++ b/src/amuleAppCommon.cpp
+@@ -31,6 +31,49 @@
+ #include <wx/wx.h>
+ #include <wx/cmdline.h>			// Needed for wxCmdLineParser
+ #include <wx/snglinst.h>		// Needed for wxSingleInstanceChecker
++
++#ifdef __AMIGA__
++// wx has no wxSingleInstanceChecker on AmigaOS: this one is a public exec
++// message port named after the lock, which goes away with the program.
++#include <exec/ports.h>
++#include <proto/exec.h>
++#include <string.h>
++
++class wxSingleInstanceChecker
++{
++public:
++	wxSingleInstanceChecker() : m_port(NULL), m_other(false) {}
++	wxSingleInstanceChecker(const wxString& name, const wxString& path)
++		: m_port(NULL), m_other(false) { Create(name, path); }
++	~wxSingleInstanceChecker()
++	{
++		if (m_port) {
++			RemPort(m_port);
++			DeleteMsgPort(m_port);
++		}
++	}
++	bool Create(const wxString& name, const wxString& WXUNUSED(path))
++	{
++		const wxCharBuffer n = ("aMule." + name).mb_str();
++		strncpy(m_name, n.data(), sizeof m_name - 1);
++		m_name[sizeof m_name - 1] = 0;
++		Forbid();
++		m_other = FindPort((CONST_STRPTR)m_name) != NULL;
++		if (!m_other && (m_port = CreateMsgPort()) != NULL) {
++			m_port->mp_Node.ln_Name = m_name;
++			m_port->mp_Node.ln_Pri = -128;
++			AddPort(m_port);
++		}
++		Permit();
++		return true;
++	}
++	bool IsAnotherRunning() const { return m_other; }
++private:
++	struct MsgPort *m_port;
++	bool m_other;
++	char m_name[64];
++};
++#endif
+ #include <wx/textfile.h>		// Needed for wxTextFile
+ #include <wx/config.h>			// Do_not_auto_remove (win32)
+ #include <wx/fileconf.h>
