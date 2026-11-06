@@ -54,6 +54,7 @@ mkdir -p "$OUT"
     -o "$OUT/joinprobe" "$HERE/tests/joinprobe.c" -lpthread || echo "joinprobe: not built"
 "$TC/bin/m68k-amigaos-gcc" -noixemul -m68040 -O2 -specs="$HERE/scripts/m68k-soft-m68040.specs" \
     -o "$OUT/fdprobe" "$HERE/tests/fdprobe.c" -lpthread || echo "fdprobe: not built"
+sh "$HERE/scripts/libnix-fd-symbols.sh" "$TC" 2>&1 | head -60
 left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 [ "$left" -gt 60 ] || { echo "no time left for aMule this run"; exit 0; }
 TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WXB/out/sdk" BUDGET=$left \
