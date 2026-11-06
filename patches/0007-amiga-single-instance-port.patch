@@ -13,7 +13,7 @@ index 40a05e4..c8b5935 100644
 +// wx has no wxSingleInstanceChecker on AmigaOS: this one is a public exec
 +// message port named after the lock, which goes away with the program.
 +#include <exec/ports.h>
-+#include <proto/exec.h>
++#include <clib/exec_protos.h>	// functions, not inline macros (wx has a Wait())
 +#include <string.h>
 +
 +class wxSingleInstanceChecker
