@@ -1,5 +1,6 @@
 # AmigaOS: a flex error in the IP filter loader (on a thread) reports errno
-# on stderr and stops that thread, instead of exit() from the thread.
+# on stderr and stops that thread, instead of exit() from the thread. In the
+# .l and in the shipped IPFilterScanner.cpp, which builds when there is no flex.
 diff --git a/src/IPFilterScanner.l b/src/IPFilterScanner.l
 index 84d7896..3927548 100644
 --- a/src/IPFilterScanner.l
@@ -9,6 +10,36 @@ index 84d7896..3927548 100644
  #define YY_NEVER_INTERACTIVE 1
  
 +#ifdef __AMIGA__
++// A flex error must not exit(): this runs on a thread, and exit() from a
++// thread takes the whole program down. Say what failed, with errno, on
++// stderr, and stop this thread's work.
++#include <errno.h>
++#include <unistd.h>
++#include <clib/exec_protos.h>
++static void amiga_flex_fatal(const char *msg)
++{
++	fprintf(stderr, "IPFilterScanner: %s (errno %d, ferror %d, feof %d, isatty %d)\n",
++		msg, errno, yyin ? ferror(yyin) : -1, yyin ? feof(yyin) : -1,
++		yyin ? isatty(fileno(yyin)) : -1);
++	fflush(stderr);
++	Wait(0);	// never returns: the thread stays, the program goes on
++}
++#define YY_FATAL_ERROR(msg) amiga_flex_fatal(msg)
++#endif
++
+ // When we get here the IP has been lexed nicely,
+ // so we can blaze through without any checks.
+ // The total lexing time is more than twice as fast
+diff --git a/src/IPFilterScanner.cpp b/src/IPFilterScanner.cpp
+index 0be0ec6..2d1f673 100644
+--- a/src/IPFilterScanner.cpp
++++ b/src/IPFilterScanner.cpp
+@@ -858,6 +858,25 @@ char *yytext;
+ 
+ #define YY_NEVER_INTERACTIVE 1
+ 
++#ifdef __AMIGA__
++// (the same as in IPFilterScanner.l: this file is what builds without flex)
 +// A flex error must not exit(): this runs on a thread, and exit() from a
 +// thread takes the whole program down. Say what failed, with errno, on
 +// stderr, and stop this thread's work.

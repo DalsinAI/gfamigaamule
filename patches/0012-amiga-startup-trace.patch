@@ -177,7 +177,7 @@ index bf15bf2..9542146 100644
  	{
  		const bool needServerMet = !serverlist->GetServerCount() && thePrefs::GetNetworkED2K();
 diff --git a/src/IPFilter.cpp b/src/IPFilter.cpp
-index 73ef3c4..5638068 100644
+index 73ef3c4..6dc8953 100644
 --- a/src/IPFilter.cpp
 +++ b/src/IPFilter.cpp
 @@ -27,6 +27,12 @@
@@ -255,7 +255,7 @@ index 73ef3c4..5638068 100644
  		wxFFile readFile;
 +		AMTRACE("ipf: open");
  		if (readFile.Open(path.GetRaw())) {
-+			AMTRACE("ipf: opened");
++			AMTRACE("ipf: opened fp %p fd %d ferror %d", (void*)readFile.fp(), fileno(readFile.fp()), ferror(readFile.fp()));
  			yyip_Line = 1;
  #ifdef __AMIGA__
  			// libnix can hand out a FILE whose error flag is still set
