@@ -1,7 +1,5 @@
-AmigaOS: async DNS lookups run on the main task (bsdsocket.library is per task)
-
 diff --git a/src/AsyncDNS.cpp b/src/AsyncDNS.cpp
-index 2991e26..659cc6f 100644
+index 2991e26..0b8a901 100644
 --- a/src/AsyncDNS.cpp
 +++ b/src/AsyncDNS.cpp
 @@ -32,8 +32,12 @@
@@ -9,12 +7,11 @@ index 2991e26..659cc6f 100644
  
  CAsyncDNS::CAsyncDNS(const wxString& ipName, DnsSolveType type, wxEvtHandler* handler, void* socket)
 +#ifdef __AMIGA__
-+	: m_ipName
++	: m_ipName(ipName.wc_str())
 +#else
  	: wxThread(wxTHREAD_DETACHED)
--	, m_ipName(ipName.wc_str())		// make a deep copy to to circument the thread-unsafe wxString reference counting
-+	, m_ipName
-+#endif(ipName.wc_str())		// make a deep copy to to circument the thread-unsafe wxString reference counting
+ 	, m_ipName(ipName.wc_str())		// make a deep copy to to circument the thread-unsafe wxString reference counting
++#endif
  {
  	m_type = type;
  	m_socket = socket;

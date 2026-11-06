@@ -85,6 +85,22 @@ if ! grep -q '__AMIGA__' "$C/config_align.h"; then
     sed -i 's/^#if defined(CRYPTOPP_CXX11_ALIGNAS)/#if defined(__AMIGA__)\n\t#define CRYPTOPP_ALIGN_DATA(x) __attribute__((aligned((x) > 8 ? 8 : (x))))\n#elif defined(CRYPTOPP_CXX11_ALIGNAS)/' "$C/config_align.h"
     grep -q '__AMIGA__' "$C/config_align.h" || { echo "config_align.h: edit not applied"; exit 1; }
 fi
+# AmigaOS has no /dev/urandom: Crypto++'s generator takes arc4random_buf()
+# from deps/compat/random.c, as on FreeBSD
+if ! grep -q '__AMIGA__' "$C/config_os.h"; then
+    cat >> "$C/config_os.h" <<'RNG'
+
+#if defined(__AMIGA__) && !defined(OS_RNG_AVAILABLE)
+#	define NONBLOCKING_RNG_AVAILABLE
+#	define OS_RNG_AVAILABLE
+#	define USE_FREEBSD_ARC4RANDOM
+#	include <errno.h>
+#	include <stddef.h>
+extern "C" void arc4random_buf(void *buf, size_t n);
+#endif
+RNG
+    rm -f "$SYS/lib/libcryptopp.a"
+fi
 if [ ! -f "$SYS/lib/libcryptopp.a" ]; then
     (cd "$C" && nice -n 19 make -j"$JOBS" -f GNUmakefile-cross static \
         CXX=m68k-amigaos-g++ AR=m68k-amigaos-ar RANLIB=m68k-amigaos-ranlib \

@@ -1,0 +1,43 @@
+# AmigaOS compile fixes: libnix's strerror_r() returns char *, the
+# OpenLayout list column minimum, and wx/toolbar.h named where it is used.
+diff --git a/src/MuleListCtrl.cpp b/src/MuleListCtrl.cpp
+index 1a77d58..9b5665f 100644
+--- a/src/MuleListCtrl.cpp
++++ b/src/MuleListCtrl.cpp
+@@ -42,7 +42,7 @@
+ 
+ 
+ // Global constants
+-#ifdef __WXGTK__
++#if defined(__WXGTK__) || defined(__WXOPENLAYOUT__)
+ 	const int COL_SIZE_MIN = 10;
+ #elif defined(__WINDOWS__) || defined(__WXMAC__) || defined(__WXCOCOA__)
+ 	const int COL_SIZE_MIN = 0;
+diff --git a/src/libs/common/strerror_r.c b/src/libs/common/strerror_r.c
+index d23163c..f43f25a 100644
+--- a/src/libs/common/strerror_r.c
++++ b/src/libs/common/strerror_r.c
+@@ -30,6 +30,11 @@
+ 
+ #include <string.h>			/* Needed for strerror_r() and size_t */
+ 
++/* libnix's strerror_r() returns the message (char *) */
++#if defined(__AMIGA__) && !defined(STRERROR_R_CHAR_P)
++#	define STRERROR_R_CHAR_P 1
++#endif
++
+ #ifdef HAVE_ERRNO_H
+ #	include <errno.h>		/* Needed for errno */
+ #endif
+diff --git a/src/muuli_wdr.cpp b/src/muuli_wdr.cpp
+index dc117e2..6c5681a 100644
+--- a/src/muuli_wdr.cpp
++++ b/src/muuli_wdr.cpp
+@@ -37,6 +37,7 @@
+ #include "muuli_wdr.h"
+ 
+ #include <wx/intl.h>
++#include <wx/toolbar.h>
+ 
+ // Euro sign hack of the year
+ #if wxUSE_UNICODE

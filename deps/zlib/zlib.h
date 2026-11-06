@@ -23,6 +23,11 @@ extern "C" {
 #define MAX_WBITS 15
 #define MAX_MEM_LEVEL 9
 
+/* as zlib's default: next_in is not const (aMule writes through it) */
+#ifndef z_const
+#define z_const
+#endif
+
 typedef unsigned char Byte;
 typedef unsigned int uInt;
 typedef unsigned long uLong;
@@ -42,7 +47,7 @@ typedef void (*free_func)(voidpf opaque, voidpf address);
 struct internal_state;
 
 typedef struct z_stream_s {
-    const Bytef *next_in;
+    z_const Bytef *next_in;
     uInt avail_in;
     uLong total_in;
     Bytef *next_out;

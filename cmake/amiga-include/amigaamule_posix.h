@@ -88,4 +88,7 @@ int gethostbyaddr_r(const void *addr, socklen_t len, int type,
 #ifdef __cplusplus
 }
 #endif
+
+/* exec/lists.h's macro would rewrite wxComboBox::IsListEmpty() */
+#undef IsListEmpty
 #endif
