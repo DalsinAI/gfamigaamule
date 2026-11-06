@@ -21,6 +21,17 @@ if [ "$(cat "$SYS/lib/.zlib" 2>/dev/null)" != "$ZS" ]; then
     echo "$ZS" > "$SYS/lib/.zlib"
 fi
 
+# compat calls libnix lacks (deps/compat): poll() on select()
+CS=$(cat "$HERE"/deps/compat/* "$HERE"/cmake/amiga-include/sys/poll.h | sha256sum | cut -c1-16)
+if [ "$(cat "$SYS/lib/.compat" 2>/dev/null)" != "$CS" ]; then
+    rm -f "$SYS/lib/libamigacompat.a"
+    for c in "$HERE"/deps/compat/*.c; do
+        m68k-amigaos-gcc $FLAGS -Wall -c "$c" -o "$WORK/compat-$(basename "$c" .c).o"
+        m68k-amigaos-ar rcs "$SYS/lib/libamigacompat.a" "$WORK/compat-$(basename "$c" .c).o"
+    done
+    echo "$CS" > "$SYS/lib/.compat"
+fi
+
 # Boost: headers only
 if [ ! -f "$SYS/include/boost/version.hpp" ] || ! grep -q "\"$(echo "$BOOST_VERSION" | tr . _ | sed 's/_0$//')\"" "$SYS/include/boost/version.hpp"; then
     T="$WORK/deps/boost-$BOOST_VERSION.tar.xz"

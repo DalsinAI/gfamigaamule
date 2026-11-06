@@ -27,6 +27,15 @@ if [ "$(cat "$SRC/.patched" 2>/dev/null)" != "$AMULE_COMMIT-$PSUM" ]; then
     rm -rf "$B"
 fi
 
+# Boost.Asio through libnix's headers: every error at once, before CMake's
+# probe (which shows only the first)
+printf '#include <boost/asio.hpp>\nint main(){boost::asio::io_context c; boost::asio::ip::tcp::socket s(c); c.poll(); return 0;}\n' > "$WORK/asioprobe.cpp"
+if ! "$TOOLCHAIN/bin/m68k-amigaos-g++" -noixemul -m68040 -std=gnu++17 -I"$HERE/cmake/amiga-include" -I"$SYS/include" \
+        -fsyntax-only -fmax-errors=60 "$WORK/asioprobe.cpp" > "$WORK/asioprobe.log" 2>&1; then
+    echo "asio probe failed:"; grep -E 'error' "$WORK/asioprobe.log" | sort -u | head -60; exit 1
+fi
+echo "asio probe: ok"
+
 OPTS="-DBUILD_MONOLITHIC=ON -DBUILD_DAEMON=OFF -DBUILD_REMOTEGUI=OFF -DBUILD_AMULECMD=OFF -DBUILD_WEBSERVER=OFF \
  -DBUILD_ED2K=OFF -DBUILD_ALC=OFF -DBUILD_ALCC=OFF -DBUILD_CAS=OFF -DBUILD_WXCAS=OFF -DBUILD_FILEVIEW=OFF \
  -DBUILD_TESTING=OFF -DENABLE_UPNP=OFF -DENABLE_IP2COUNTRY=OFF -DENABLE_NLS=OFF -DENABLE_MMAP=OFF"
