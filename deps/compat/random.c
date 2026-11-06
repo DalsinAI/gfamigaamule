@@ -3,6 +3,8 @@
  * EClock, the date, the task, the stack and free memory, and takes in a
  * fresh EClock reading at every call.
  * Copyright (c) 2026 AmiCradle Team */
+/* our own timer.device base: not a TimerBase another library may define */
+#define TimerBase amigaamule_TimerBase
 #include <string.h>
 #include <exec/types.h>
 #include <exec/memory.h>
@@ -13,7 +15,7 @@
 #include <proto/dos.h>
 #include <proto/timer.h>
 
-static struct Device *TimerBase;   /* the inline calls name it */
+struct Device *TimerBase;
 static struct timerequest treq;
 static int timer_open;
 
