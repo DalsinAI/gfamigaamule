@@ -22,9 +22,13 @@ typedef unsigned int nfds_t;
 #define POLLRDBAND 0x0080
 #define POLLWRNORM POLLOUT
 #define POLLWRBAND 0x0100
-/* our own, not libnix's */
-#define poll amigaamule_poll
+/* our own, not libnix's (a function, not a macro: Asio has members
+ * named poll) */
 int amigaamule_poll(struct pollfd *fds, nfds_t nfds, int timeout);
+static inline int poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+    return amigaamule_poll(fds, nfds, timeout);
+}
 #ifdef __cplusplus
 }
 #endif

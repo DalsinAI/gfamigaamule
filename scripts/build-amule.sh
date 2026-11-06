@@ -30,9 +30,19 @@ fi
 # Boost.Asio through libnix's headers: every error at once, before CMake's
 # probe (which shows only the first)
 printf '#include <boost/asio.hpp>\nint main(){boost::asio::io_context c; boost::asio::ip::tcp::socket s(c); c.poll(); return 0;}\n' > "$WORK/asioprobe.cpp"
-if ! "$TOOLCHAIN/bin/m68k-amigaos-g++" -noixemul -m68040 -std=gnu++17 -I"$HERE/cmake/amiga-include" -I"$SYS/include" \
+if ! "$TOOLCHAIN/bin/m68k-amigaos-g++" -noixemul -m68040 -std=gnu++17 -I"$HERE/cmake/amiga-include" -include amigaamule_posix.h \
+        -DBOOST_ASIO_DISABLE_THREADS -DBOOST_ASIO_DISABLE_SERIAL_PORT -DBOOST_ASIO_DISABLE_GETADDRINFO -I"$SYS/include" \
         -fsyntax-only -fmax-errors=60 "$WORK/asioprobe.cpp" > "$WORK/asioprobe.log" 2>&1; then
-    echo "asio probe failed:"; grep -E 'error' "$WORK/asioprobe.log" | sort -u | head -60; exit 1
+    echo "asio probe failed:"; grep -E 'error' "$WORK/asioprobe.log" | sort -u | head -60
+    # what libnix's headers and socket library have
+    I=$(echo | "$TOOLCHAIN/bin/m68k-amigaos-g++" -noixemul -xc++ -E -v - 2>&1 | sed -n '/^ \//p' | tr -d ' ' | tr '\n' ' ')
+    for w in sockaddr_storage sockaddr_in6 in6_addr ipv6_mreq addrinfo getaddrinfo iovec recvmsg msghdr inet_ntop fcntl FIONBIO EAI_NONAME; do
+        echo "$w: $(grep -rlw "$w" $I 2>/dev/null | grep -v c++ | head -3 | tr '\n' ' ')"
+    done
+    for l in $(find "$TOOLCHAIN" -name libsocket.a | head -1); do
+        echo "libsocket: $("$TOOLCHAIN/bin/m68k-amigaos-nm" "$l" 2>/dev/null | grep ' T ' | awk '{print $3}' | tr '\n' ' ' | cut -c1-1500)"
+    done
+    exit 1
 fi
 echo "asio probe: ok"
 

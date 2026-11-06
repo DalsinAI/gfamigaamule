@@ -22,7 +22,7 @@ if [ "$(cat "$SYS/lib/.zlib" 2>/dev/null)" != "$ZS" ]; then
 fi
 
 # compat calls libnix lacks (deps/compat): poll() on select()
-CS=$(cat "$HERE"/deps/compat/* "$HERE"/cmake/amiga-include/sys/poll.h | sha256sum | cut -c1-16)
+CS=$(cat "$HERE"/deps/compat/* "$HERE"/cmake/amiga-include/sys/poll.h "$HERE"/cmake/amiga-include/amigaamule_posix.h | sha256sum | cut -c1-16)
 if [ "$(cat "$SYS/lib/.compat" 2>/dev/null)" != "$CS" ]; then
     rm -f "$SYS/lib/libamigacompat.a"
     for c in "$HERE"/deps/compat/*.c; do
@@ -33,7 +33,8 @@ if [ "$(cat "$SYS/lib/.compat" 2>/dev/null)" != "$CS" ]; then
 fi
 
 # Boost: headers only
-if [ ! -f "$SYS/include/boost/version.hpp" ] || ! grep -q "\"$(echo "$BOOST_VERSION" | tr . _ | sed 's/_0$//')\"" "$SYS/include/boost/version.hpp"; then
+if [ ! -f "$SYS/include/boost/version.hpp" ] || ! grep -q "\"$(echo "$BOOST_VERSION" | tr . _ | sed 's/_0$//')\"" "$SYS/include/boost/version.hpp" \
+        || [ "$(cat "$SYS/include/.boost-edits" 2>/dev/null)" != 2 ]; then
     T="$WORK/deps/boost-$BOOST_VERSION.tar.xz"
     [ -f "$T" ] || curl -sSfL -o "$T" "$BOOST_URL"
     echo "$BOOST_SHA256  $T" | sha256sum -c - >/dev/null
@@ -42,9 +43,12 @@ if [ ! -f "$SYS/include/boost/version.hpp" ] || ! grep -q "\"$(echo "$BOOST_VERS
     mv "$WORK/deps/boost-$BOOST_VERSION/boost" "$SYS/include/boost"
     # Asio wakes its select() with a loopback socket pair on AmigaOS, as on
     # Windows: libnix's select() watches sockets only
-    sed -i 's/|| defined(__SYMBIAN32__)$/|| defined(__SYMBIAN32__) || defined(__AMIGA__)/' \
-        "$SYS/include/boost/asio/detail/select_interrupter.hpp"
-    [ "$(grep -c '__AMIGA__' "$SYS/include/boost/asio/detail/select_interrupter.hpp")" = 2 ] || { echo "select_interrupter.hpp: edit not applied"; exit 1; }
+    A="$SYS/include/boost/asio/detail"
+    for f in select_interrupter.hpp socket_select_interrupter.hpp impl/socket_select_interrupter.ipp; do
+        sed -i 's/|| defined(__SYMBIAN32__)$/|| defined(__SYMBIAN32__) || defined(__AMIGA__)/' "$A/$f"
+        grep -q '__AMIGA__' "$A/$f" || { echo "$f: edit not applied"; exit 1; }
+    done
+    echo 2 > "$SYS/include/.boost-edits"
     # aMule's CMake looks Boost up as a CONFIG package: a header-only one
     D="$SYS/lib/cmake/Boost-$BOOST_VERSION"; mkdir -p "$D"
     cat > "$D/BoostConfig.cmake" <<CFG
