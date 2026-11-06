@@ -1,5 +1,6 @@
-# Lab diagnostic, not for merge: startup stages and scheduler tasks go to
-# SYS:T/amule.trace when ENV:aMule.trace is set.
+# Lab diagnostic, not for merge: startup stages, scheduler tasks and the IP
+# filter loader go to SYS:T/amule.trace when ENV:aMule.trace is set ("t":
+# from threads only).
 diff --git a/src/ThreadScheduler.cpp b/src/ThreadScheduler.cpp
 index bb8662c..482a303 100644
 --- a/src/ThreadScheduler.cpp
@@ -175,3 +176,108 @@ index bf15bf2..9542146 100644
  
  	{
  		const bool needServerMet = !serverlist->GetServerCount() && thePrefs::GetNetworkED2K();
+diff --git a/src/IPFilter.cpp b/src/IPFilter.cpp
+index 73ef3c4..5638068 100644
+--- a/src/IPFilter.cpp
++++ b/src/IPFilter.cpp
+@@ -27,6 +27,12 @@
+ #include <wx/ffile.h>
+ 
+ #include "IPFilter.h"			// Interface declarations.
++#ifdef __AMIGA__
++extern "C" void amigaamule_trace(const char *, ...);
++#define AMTRACE(...) amigaamule_trace(__VA_ARGS__)
++#else
++#define AMTRACE(...)
++#endif
+ #include "IPFilterScanner.h"	// Interface for flexer
+ #include "Preferences.h"		// Needed for thePrefs
+ #include "amule.h"			// Needed for theApp
+@@ -110,10 +116,13 @@ public:
+ private:
+ 	void Entry()
+ 	{
++		AMTRACE("ipf: entry");
+ 		AddLogLineN(_("Loading IP filters 'ipfilter.dat' and 'ipfilter_static.dat'."));
++		AMTRACE("ipf: logged");
+ 		if ( !LoadFromFile(thePrefs::GetConfigDir() + "ipfilter.dat") &&
+ 		     thePrefs::UseIPFilterSystem() ) {
+ 			// Load from system wide IP filter file
++			AMTRACE("ipf: system file");
+ 			wxStandardPathsBase &spb(wxStandardPaths::Get());
+ #ifdef __WINDOWS__
+ 			wxString dataDir(spb.GetPluginsDir());
+@@ -123,11 +132,14 @@ private:
+ 			wxString dataDir(spb.GetDataDir().BeforeLast('/') + "/amule");
+ #endif
+ 			wxString systemwideFile(JoinPaths(dataDir,"ipfilter.dat"));
++			AMTRACE("ipf: system %s", (const char*)systemwideFile.utf8_str());
+ 			LoadFromFile(systemwideFile);
+ 		}
+ 
+ 
++		AMTRACE("ipf: static");
+ 		LoadFromFile(thePrefs::GetConfigDir() + "ipfilter_static.dat");
++		AMTRACE("ipf: static done");
+ 
+ 		uint8 accessLevel = thePrefs::GetIPFilterLevel();
+ 		uint32 size = m_result.size();
+@@ -196,8 +208,10 @@ private:
+ 		// - some ranges from the map have to be split for the table
+ 		AddDebugLogLineN(logIPFilter, CFormat("Ranges in map: %d  blocked ranges in table: %d") % size % m_rangeIPs.size());
+ 
++		AMTRACE("ipf: event");
+ 		CIPFilterEvent evt(m_rangeIPs, m_rangeLengths, m_rangeNames);
+ 		wxQueueEvent(m_owner, (evt).Clone());
++		AMTRACE("ipf: queued");
+ 	}
+ 
+ 	/**
+@@ -276,6 +290,7 @@ private:
+ 	 **/
+ 	int LoadFromFile(const wxString& file)
+ 	{
++		AMTRACE("ipf: load %s", (const char*)file.utf8_str());
+ 		const CPath path = CPath(file);
+ 
+ 		if (!path.FileExists() || TestDestroy()) {
+@@ -295,6 +310,7 @@ private:
+ 
+ 		// Try to unpack the file, might be an archive
+ 
++		AMTRACE("ipf: unpack");
+ 		if (UnpackArchive(path, ipfilter_files).second != EFT_Text) {
+ 			AddLogLineC(CFormat(_("Failed to load ipfilter.dat file '%s', unknown format encountered.")) % file);
+ 			return 0;
+@@ -303,7 +319,9 @@ private:
+ 		int filtercount = 0;
+ 		yyip_Bad = 0;
+ 		wxFFile readFile;
++		AMTRACE("ipf: open");
+ 		if (readFile.Open(path.GetRaw())) {
++			AMTRACE("ipf: opened");
+ 			yyip_Line = 1;
+ #ifdef __AMIGA__
+ 			// libnix can hand out a FILE whose error flag is still set
+@@ -311,6 +329,7 @@ private:
+ 			clearerr(readFile.fp());
+ #endif
+ 			yyiprestart(readFile.fp());
++			AMTRACE("ipf: restarted");
+ 			uint32 IPStart = 0;
+ 			uint32 IPEnd   = 0;
+ 			uint32 IPAccessLevel = 0;
+@@ -331,11 +350,13 @@ private:
+ 			return 0;
+ 		}
+ 
++		AMTRACE("ipf: lexed %d", filtercount);
+ 		wxString msg = CFormat(wxPLURAL("Loaded %u IP-range from '%s'.", "Loaded %u IP-ranges from '%s'.", filtercount)) % filtercount % file;
+ 		if (yyip_Bad) {
+ 			msg << " " << ( CFormat(wxPLURAL("%u malformed line was discarded.", "%u malformed lines were discarded.", yyip_Bad)) % yyip_Bad );
+ 		}
+ 		AddLogLineN(msg);
++		AMTRACE("ipf: load done");
+ 
+ 		return filtercount;
+ 	}
