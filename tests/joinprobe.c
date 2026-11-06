@@ -1,6 +1,6 @@
 /* joinprobe: pthread create, priority, exit and join in a tight loop, with
  * the join landing before, during and after the thread's exit, as wxThread
- * does (attr stack size, sched param, a key, malloc on the way out).
+ * does (attr stack size, a priority, a key, malloc on the way out).
  * Prints rounds done; a crash here is the pthread library's.
  * Copyright (c) 2026 AmiCradle Team */
 #include <pthread.h>
@@ -45,10 +45,9 @@ int main(int argc, char **argv)
             return 5;
         }
         pthread_attr_destroy(&a);
-        if (pthread_getschedparam(t, &pol, &sp) == 0) {
-            sp.sched_priority = (i & 1) ? -1 : 0;
-            pthread_setschedparam(t, pol, &sp);
-        }
+        pol = SCHED_OTHER;
+        sp.sched_priority = (i & 1) ? -1 : 0;
+        pthread_setschedparam(t, pol, &sp);
         spin(((i * 7) % 11) * 1301);
         pthread_join(t, NULL);
         if (i % 100 == 0) {
