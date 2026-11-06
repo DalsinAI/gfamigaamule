@@ -60,7 +60,7 @@ if [ "$(cat "$B/.configured" 2>/dev/null)" != "$CSUM" ]; then
         -DAMIGA_TOOLCHAIN="$TOOLCHAIN" -DAMIGA_SYSROOT="$SYS" -DAMIGA_SPECS="$HERE/scripts/m68k-soft-m68040.specs" \
         -DCMAKE_PREFIX_PATH="$SYS" -DCMAKE_BUILD_TYPE=Release \
         -DwxWidgets_CONFIG_EXECUTABLE="$WX_SDK/bin/wx-config" \
-        -DCRYPTOPP_INCLUDE_PREFIX=cryptopp -DCRYPTOPP_VERSION=8.9.0 -DCRYPTOPP_INCLUDE_DIR="$SYS/include" -DCRYPTOPP_LIBRARY="$SYS/lib/libcryptopp.a" \
+        -DLIBATOMIC_LIBRARY=atomic -DCRYPTOPP_INCLUDE_PREFIX=cryptopp -DCRYPTOPP_VERSION=8.9.0 -DCRYPTOPP_INCLUDE_DIR="$SYS/include" -DCRYPTOPP_LIBRARY="$SYS/lib/libcryptopp.a" \
         -DCMAKE_THREAD_LIBS_INIT=-lpthread -DCMAKE_HAVE_PTHREAD_CREATE=1 -DCMAKE_USE_PTHREADS_INIT=1 -DThreads_FOUND=TRUE \
         $OPTS > cmake.log 2>&1) || { grep -B2 -A12 'CMake Error' "$B/cmake.log" | head -40;
         # why a compile probe failed: the compiler's own errors
