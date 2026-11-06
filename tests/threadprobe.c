@@ -1,12 +1,21 @@
 /* threadprobe: are libnix's malloc and stdio safe with two pthreads?
  * Two threads and the main task each allocate, free and read a file for a
- * few seconds; prints what went wrong. A lab check for the aMule port.
+ * few seconds; prints what went wrong, and each one's stack size. A lab check for the aMule port.
  * Copyright (c) 2026 AmiCradle Team */
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <exec/tasks.h>
+#include <clib/exec_protos.h>
+
+static unsigned long stack_of_me(void)
+{
+    struct Task *t = FindTask(NULL);
+    return (unsigned long)t->tc_SPUpper - (unsigned long)t->tc_SPLower;
+}
+static volatile unsigned long stacks[3];
 
 static const char *path;
 static volatile int bad_alloc, bad_read, rounds[3];
@@ -16,6 +25,7 @@ static void *work(void *arg)
     const int me = (int)(long)arg;
     const time_t end = time(NULL) + 5;
     char buf[256];
+    stacks[me] = stack_of_me();
     while (time(NULL) < end) {
         int i;
         void *p[64];
@@ -52,6 +62,7 @@ int main(int argc, char **argv)
     work((void *)0L);
     pthread_join(t[0], NULL);
     pthread_join(t[1], NULL);
+    printf("threadprobe: stacks %lu (main) %lu %lu bytes\n", stacks[0], stacks[1], stacks[2]);
     printf("threadprobe: rounds %d %d %d, bad allocations %d, failed reads %d\n",
            rounds[0], rounds[1], rounds[2], bad_alloc, bad_read);
     return (bad_alloc || bad_read) ? 5 : 0;
