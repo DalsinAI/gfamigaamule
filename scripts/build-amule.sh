@@ -14,17 +14,24 @@ mkdir -p "$OUT"
 
 PSUM=$(cat "$HERE"/patches/*.patch 2>/dev/null | sha256sum | cut -c1-16)
 if [ "$(cat "$SRC/.patched" 2>/dev/null)" != "$AMULE_COMMIT-$PSUM" ]; then
-    rm -rf "$SRC"; mkdir -p "$SRC"
-    git -C "$SRC" init -q
-    git -C "$SRC" fetch -q --depth 1 "$AMULE_GIT" "$AMULE_COMMIT"
-    git -C "$SRC" checkout -q FETCH_HEAD
+    if [ "$(git -C "$SRC" rev-parse HEAD 2>/dev/null)" = "$AMULE_COMMIT" ]; then
+        # same commit, other patches: back to the commit and patch again;
+        # the build tree stays, so make rebuilds only the patched files
+        rm -f "$SRC/.patched"
+        git -C "$SRC" checkout -q -f "$AMULE_COMMIT"
+        git -C "$SRC" clean -q -fdx
+    else
+        rm -rf "$SRC" "$B"; mkdir -p "$SRC"
+        git -C "$SRC" init -q
+        git -C "$SRC" fetch -q --depth 1 "$AMULE_GIT" "$AMULE_COMMIT"
+        git -C "$SRC" checkout -q FETCH_HEAD
+    fi
     [ "$(git -C "$SRC" rev-parse HEAD)" = "$AMULE_COMMIT" ] || { echo "commit mismatch"; exit 1; }
     for p in "$HERE"/patches/*.patch; do
         [ -f "$p" ] || continue
         patch -s -d "$SRC" -p1 < "$p" || { echo "patch failed: $p"; exit 1; }
     done
     echo "$AMULE_COMMIT-$PSUM" > "$SRC/.patched"
-    rm -rf "$B"
 fi
 
 # Boost.Asio through libnix's headers: every error at once, before CMake's
