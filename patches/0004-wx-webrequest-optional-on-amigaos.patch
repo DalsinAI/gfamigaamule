@@ -1,0 +1,19 @@
+# AmigaOS: a wx without wxWebRequest is accepted (patch 0003 turns HTTP
+# downloads off); other systems still need it.
+diff --git a/cmake/wx.cmake b/cmake/wx.cmake
+index 8c39e20..66f3906 100644
+--- a/cmake/wx.cmake
++++ b/cmake/wx.cmake
+@@ -133,7 +133,11 @@ if (wx_NEED_NET)
+ 	cmake_pop_check_state()
+ 	unset (_amule_wx_required_defs)
+ 
+-	if (NOT amule_HAVE_WXWEBREQUEST)
++	# AmigaOS: no wxWebRequest backend yet; HTTPDownload reports that
++	# downloads are not available (patch 0003)
++	if (NOT amule_HAVE_WXWEBREQUEST AND CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
++		message (STATUS "wxWebRequest not in this wx: HTTP downloads off")
++	elseif (NOT amule_HAVE_WXWEBREQUEST)
+ 		message (FATAL_ERROR
+ 			"wxWidgets was found but wxUSE_WEBREQUEST is 0 in this build.\n"
+ 			"aMule's HTTP download path requires wxWebRequest, which "
