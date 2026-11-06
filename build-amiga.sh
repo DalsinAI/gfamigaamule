@@ -46,6 +46,10 @@ fi
 
 TOOLCHAIN="$TC" WORK="$WORK" JOBS=$JOBS sh "$HERE/scripts/build-deps.sh" > "$WORK.deps.log" 2>&1 || { tail -40 "$WORK.deps.log"; exit 1; }
 echo "libraries: $(( $(date +%s) - t0 )) s"
+# lab check: libnix malloc and stdio with threads (tests/threadprobe.c)
+mkdir -p "$OUT"
+"$TC/bin/m68k-amigaos-gcc" -noixemul -m68040 -O2 -specs="$HERE/scripts/m68k-soft-m68040.specs" \
+    -o "$OUT/threadprobe" "$HERE/tests/threadprobe.c" -lpthread || echo "threadprobe: not built"
 left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 [ "$left" -gt 60 ] || { echo "no time left for aMule this run"; exit 0; }
 TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WXB/out/sdk" BUDGET=$left \
