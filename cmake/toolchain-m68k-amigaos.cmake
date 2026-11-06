@@ -9,9 +9,8 @@ set(CMAKE_CXX_COMPILER "${AMIGA_TOOLCHAIN}/bin/m68k-amigaos-g++")
 set(CMAKE_AR "${AMIGA_TOOLCHAIN}/bin/m68k-amigaos-ar" CACHE FILEPATH "")
 set(CMAKE_RANLIB "${AMIGA_TOOLCHAIN}/bin/m68k-amigaos-ranlib" CACHE FILEPATH "")
 set(CMAKE_STRIP "${AMIGA_TOOLCHAIN}/bin/m68k-amigaos-strip" CACHE FILEPATH "")
-# Boost.Asio: one task (bsdsocket is per task), no serial ports, its own
-# getaddrinfo() on gethostbyname()
-set(AMIGA_ASIO_DEFS "-DBOOST_ASIO_DISABLE_THREADS -DBOOST_ASIO_DISABLE_SERIAL_PORT -DBOOST_ASIO_DISABLE_GETADDRINFO")
+# Boost.Asio: one task (bsdsocket is per task), no serial ports
+set(AMIGA_ASIO_DEFS "-DBOOST_ASIO_DISABLE_THREADS -DBOOST_ASIO_DISABLE_SERIAL_PORT")
 set(CMAKE_C_FLAGS_INIT "-noixemul -m68040 -I${CMAKE_CURRENT_LIST_DIR}/amiga-include")
 set(CMAKE_CXX_FLAGS_INIT "-noixemul -m68040 -I${CMAKE_CURRENT_LIST_DIR}/amiga-include -include amigaamule_posix.h ${AMIGA_ASIO_DEFS}")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-noixemul -m68040 -specs=${AMIGA_SPECS} -L${AMIGA_SYSROOT}/lib")
