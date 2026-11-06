@@ -29,13 +29,26 @@ fetch() {
         git -C "$d" checkout -q FETCH_HEAD
     fi
 }
-if [ -z "${WXT_SRC:-}" ]; then
+# a ready SDK from the lock, when it is on this host and its checksum holds
+WX_SDK=""
+if [ -z "${WXT_SRC:-}" ] && [ -n "${WXT_SDK_TAR:-}" ] && [ -f "$WXT_SDK_TAR" ]; then
+    D="$WORK/wxsdk-$(echo "$WXT_SDK_SHA256" | cut -c1-16)"
+    if [ ! -x "$D/.ok" ]; then
+        echo "$WXT_SDK_SHA256  $WXT_SDK_TAR" | sha256sum -c - >/dev/null || { echo "SDK checksum differs"; exit 1; }
+        rm -rf "$D"; mkdir -p "$D"; tar xzf "$WXT_SDK_TAR" -C "$D"
+        touch "$D/.ok"; chmod +x "$D/.ok"
+    fi
+    WX_SDK=$(dirname "$(dirname "$(find "$D" -path '*/bin/wx-config' | head -1)")")
+    echo "toolkit: SDK $WX_SDK"
+fi
+if [ -z "$WX_SDK" ] && [ -z "${WXT_SRC:-}" ]; then
     [ -n "$WXT_COMMIT" ] || { echo "WXT_SRC: a GFOpenWX Toolkit tree with wxNet (no commit pinned yet)"; exit 1; }
     fetch gfopenwxtoolkit "$WXT_REPO" "$WXT_COMMIT"; WXT_SRC="$WORK/deps/gfopenwxtoolkit"
 fi
 
 # the toolkit again only when its tree changed since its SDK was made
 WXB="$WORK/gfopenwx"
+if [ -z "$WX_SDK" ]; then
 WXREV=$( (git -C "$WXT_SRC" rev-parse HEAD 2>/dev/null; git -C "$WXT_SRC" diff HEAD 2>/dev/null) | sha256sum | cut -c1-16)
 if [ ! -x "$WXB/out/sdk/bin/wx-config" ] || [ "$(cat "$WXB/out/.rev" 2>/dev/null)" != "$WXREV" ]; then
     STOVE="$STOVE" WORK="$WXB" OUT="$WXB/out" JOBS=$JOBS sh "$WXT_SRC/build-amiga.sh" > "$WORK.wx.log" 2>&1 || { tail -30 "$WORK.wx.log"; exit 1; }
@@ -43,6 +56,8 @@ if [ ! -x "$WXB/out/sdk/bin/wx-config" ] || [ "$(cat "$WXB/out/.rev" 2>/dev/null
     echo "toolkit: $(( $(date +%s) - t0 )) s"
 fi
 [ -x "$WXB/out/sdk/bin/wx-config" ] || { tail -30 "$WORK.wx.log"; echo "no toolkit SDK"; exit 1; }
+WX_SDK="$WXB/out/sdk"
+fi
 
 TOOLCHAIN="$TC" WORK="$WORK" JOBS=$JOBS sh "$HERE/scripts/build-deps.sh" > "$WORK.deps.log" 2>&1 || { tail -40 "$WORK.deps.log"; exit 1; }
 echo "libraries: $(( $(date +%s) - t0 )) s"
@@ -59,6 +74,6 @@ mkdir -p "$OUT"
     -o "$OUT/fdprobe" "$HERE/tests/fdprobe.c" -lamigacompat -lsocket -lpthread || echo "fdprobe-locked: not built"
 left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 [ "$left" -gt 60 ] || { echo "no time left for aMule this run"; exit 0; }
-TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WXB/out/sdk" BUDGET=$left \
+TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WX_SDK" BUDGET=$left \
     sh "$HERE/scripts/build-amule.sh"
 echo "total: $(( $(date +%s) - t0 )) s"

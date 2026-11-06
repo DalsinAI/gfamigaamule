@@ -60,7 +60,7 @@ echo "asio probe: ok"
 OPTS="-DBUILD_MONOLITHIC=ON -DBUILD_DAEMON=OFF -DBUILD_REMOTEGUI=OFF -DBUILD_AMULECMD=OFF -DBUILD_WEBSERVER=OFF \
  -DBUILD_ED2K=OFF -DBUILD_ALC=OFF -DBUILD_ALCC=OFF -DBUILD_CAS=OFF -DBUILD_WXCAS=OFF -DBUILD_FILEVIEW=OFF \
  -DBUILD_TESTING=OFF -DENABLE_UPNP=OFF -DENABLE_IP2COUNTRY=OFF -DENABLE_NLS=OFF -DENABLE_MMAP=OFF"
-CSUM=$( (cat "$0" "$HERE/cmake/toolchain-m68k-amigaos.cmake" "$HERE"/cmake/Platform/*.cmake; echo "$OPTS") | sha256sum | cut -c1-16)
+CSUM=$( (cat "$0" "$HERE/cmake/toolchain-m68k-amigaos.cmake" "$HERE"/cmake/Platform/*.cmake; echo "$OPTS $WX_SDK") | sha256sum | cut -c1-16)
 if [ "$(cat "$B/.configured" 2>/dev/null)" != "$CSUM" ]; then
     # configured again in place: make rebuilds what the new flags change
     rm -f "$B/CMakeCache.txt"; mkdir -p "$B"
