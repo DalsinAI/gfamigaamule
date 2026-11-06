@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <time.h>
 
+extern unsigned long amigaamule_fdlock_calls __attribute__((weak));
 static const char *a_path, *b_path;
 static char a_head[64], b_head[64];
 static volatile int a_bad, b_bad, a_rounds, b_rounds, a_err, b_err;
@@ -67,5 +68,7 @@ int main(int argc, char **argv)
     pthread_join(t, NULL);
     printf("fdprobe: stdio thread %d rounds, %d bad (errno %d); open() main %d rounds, %d bad (errno %d)\n",
            a_rounds, a_bad, a_err, b_rounds, b_bad, b_err);
+    if (&amigaamule_fdlock_calls)
+        printf("fdprobe: fdlock on, %lu calls through it\n", amigaamule_fdlock_calls);
     return (a_bad || b_bad) ? 5 : 0;
 }

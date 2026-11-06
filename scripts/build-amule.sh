@@ -62,7 +62,8 @@ OPTS="-DBUILD_MONOLITHIC=ON -DBUILD_DAEMON=OFF -DBUILD_REMOTEGUI=OFF -DBUILD_AMU
  -DBUILD_TESTING=OFF -DENABLE_UPNP=OFF -DENABLE_IP2COUNTRY=OFF -DENABLE_NLS=OFF -DENABLE_MMAP=OFF"
 CSUM=$( (cat "$0" "$HERE/cmake/toolchain-m68k-amigaos.cmake" "$HERE"/cmake/Platform/*.cmake; echo "$OPTS") | sha256sum | cut -c1-16)
 if [ "$(cat "$B/.configured" 2>/dev/null)" != "$CSUM" ]; then
-    rm -rf "$B"; mkdir -p "$B"
+    # configured again in place: make rebuilds what the new flags change
+    rm -f "$B/CMakeCache.txt"; mkdir -p "$B"
     # shellcheck disable=SC2086
     (cd "$B" && cmake "$SRC" -G "Unix Makefiles" \
         -DCMAKE_TOOLCHAIN_FILE="$HERE/cmake/toolchain-m68k-amigaos.cmake" \
