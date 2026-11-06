@@ -1,10 +1,20 @@
 # AmigaOS: wxStandardPaths works its prefix out once, on the main task,
 # before the IP filter task asks for it from its own thread.
 diff --git a/src/amule.cpp b/src/amule.cpp
-index 9542146..384ec15 100644
+index 9542146..8cc2d25 100644
 --- a/src/amule.cpp
 +++ b/src/amule.cpp
-@@ -663,6 +663,13 @@ bool CamuleApp::OnInit()
+@@ -50,6 +50,9 @@
+ #include <wx/stdpaths.h>		// Needed for wxStandardPaths (CA bundle lookup)
+ #include <wx/filename.h>		// Needed for wxFileName (CA bundle lookup)
+ #endif
++#ifdef __AMIGA__
++#include <wx/stdpaths.h>		// wxStandardPaths, asked once before threads start
++#endif
+ 
+ #if defined(__WXGTK__) && !defined(__APPLE__)
+ #include <glib.h>			// g_set_prgname() — wl_app_id / WM_CLASS binding
+@@ -663,6 +666,13 @@ bool CamuleApp::OnInit()
  	// so FlushBuffer's PB_PENDING items would never drain and the
  	// `.part` file would stay at 0 bytes despite the network side
  	// happily receiving chunks (#849).
