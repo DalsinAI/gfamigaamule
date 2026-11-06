@@ -1,0 +1,58 @@
+# AmigaOS: the scheduler thread stays up between tasks and sleeps on a
+# semaphore, instead of ending and being joined and made again for each
+# batch of tasks (ENV:aMule.oldsched brings back the old way, for the lab).
+diff --git a/src/ThreadScheduler.cpp b/src/ThreadScheduler.cpp
+index 482a303..9d63c08 100644
+--- a/src/ThreadScheduler.cpp
++++ b/src/ThreadScheduler.cpp
+@@ -43,6 +43,23 @@ static CThreadScheduler* s_scheduler = NULL;
+ static bool	s_running = false;
+ //! Specifies if the global scheduler has been terminated.
+ static bool s_terminated = false;
++#ifdef __AMIGA__
++// AmigaOS: the scheduler thread stays up and sleeps on this semaphore when
++// it runs out of tasks, instead of ending and being joined and made again
++// for the next task (a thread ending while the main task joins it and
++// starts the next one broke the heap here). ENV:aMule.oldsched brings the
++// old way back, for comparison in the lab.
++#include <stdlib.h>
++static wxSemaphore s_wake;
++static bool KeepThread()
++{
++	static int keep = -1;
++	if (keep < 0) {
++		keep = getenv("aMule.oldsched") == NULL;
++	}
++	return keep != 0;
++}
++#endif
+ 
+ /**
+  * This class is used in a custom implementation of wxThreadHelper.
+@@ -262,6 +279,11 @@ bool CThreadScheduler::DoAddTask(CThreadTask* task, bool overwrite)
+ 	if (s_running) {
+ 		CreateSchedulerThread();
+ 	}
++#ifdef __AMIGA__
++	if (KeepThread()) {
++		s_wake.Post();
++	}
++#endif
+ 
+ 	return true;
+ }
+@@ -283,6 +305,14 @@ void* CThreadScheduler::Entry()
+ 				std::sort(m_tasks.begin(), m_tasks.end(), CTaskSorter());
+ 				m_tasksDirty = false;
+ 			} else if (m_tasks.empty()) {
++#ifdef __AMIGA__
++				if (KeepThread()) {
++					s_lock.Unlock();
++					s_wake.WaitTimeout(500);
++					s_lock.Lock();
++					continue;
++				}
++#endif
+ 				AddDebugLogLineN(logThreads, "No more tasks, stopping");
+ 				break;
+ 			}

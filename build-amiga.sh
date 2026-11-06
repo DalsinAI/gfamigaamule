@@ -50,6 +50,8 @@ echo "libraries: $(( $(date +%s) - t0 )) s"
 mkdir -p "$OUT"
 "$TC/bin/m68k-amigaos-gcc" -noixemul -m68040 -O2 -specs="$HERE/scripts/m68k-soft-m68040.specs" \
     -o "$OUT/threadprobe" "$HERE/tests/threadprobe.c" -lpthread || echo "threadprobe: not built"
+"$TC/bin/m68k-amigaos-gcc" -noixemul -m68040 -O2 -specs="$HERE/scripts/m68k-soft-m68040.specs" \
+    -o "$OUT/joinprobe" "$HERE/tests/joinprobe.c" -lpthread || echo "joinprobe: not built"
 left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 [ "$left" -gt 60 ] || { echo "no time left for aMule this run"; exit 0; }
 TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WXB/out/sdk" BUDGET=$left \
