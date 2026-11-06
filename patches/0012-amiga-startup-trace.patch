@@ -1,0 +1,177 @@
+# Lab diagnostic, not for merge: startup stages and scheduler tasks go to
+# SYS:T/amule.trace when ENV:aMule.trace is set.
+diff --git a/src/ThreadScheduler.cpp b/src/ThreadScheduler.cpp
+index bb8662c..482a303 100644
+--- a/src/ThreadScheduler.cpp
++++ b/src/ThreadScheduler.cpp
+@@ -27,6 +27,12 @@
+ #include <common/Format.h>		// Needed for CFormat
+ #include "ScopedPtr.h"			// Needed for CScopedPtr
+ 
++#ifdef __AMIGA__
++extern "C" void amigaamule_trace(const char *, ...);
++#define AMTRACE(...) amigaamule_trace(__VA_ARGS__)
++#else
++#define AMTRACE(...)
++#endif
+ #include <algorithm>			// Needed for std::sort		// Do_not_auto_remove (mingw-gcc-3.4.5)
+ 
+ //! Global lock the scheduler and its thread.
+@@ -154,9 +160,11 @@ void CThreadScheduler::CreateSchedulerThread()
+ 	wxThreadError err = m_thread->Create();
+ 	if (err == wxTHREAD_NO_ERROR) {
+ 		// Try to avoid reducing the latency of the main thread
++		AMTRACE("sched thread created");
+ 		m_thread->SetPriority(WXTHREAD_MIN_PRIORITY);
+ 
+ 		err = m_thread->Run();
++		AMTRACE("sched thread run %d", (int)err);
+ 		if (err == wxTHREAD_NO_ERROR) {
+ 			AddDebugLogLineN(logThreads, "Scheduler thread started");
+ 			return;
+@@ -288,8 +296,11 @@ void* CThreadScheduler::Entry()
+ 		AddDebugLogLineN(logThreads, "Current task: " + task->GetType() + " - " + task->GetDesc());
+ 		// Execute the task
+ 		task->m_owner = m_thread;
++		AMTRACE("task %s", (const char*)task->GetType().utf8_str());
+ 		task->Entry();
++		AMTRACE("task entry done");
+ 		task->OnExit();
++		AMTRACE("task exit done");
+ 
+ 		// Check if this was the last task of this type
+ 		bool isLastTask = false;
+@@ -323,10 +334,12 @@ void* CThreadScheduler::Entry()
+ 			// Allow the task to signal that all sub-tasks have been completed
+ 			AddDebugLogLineN(logThreads, "Last task, calling OnLastTask");
+ 			task->OnLastTask();
++			AMTRACE("last task done");
+ 		}
+ 	}
+ 
+ 	AddDebugLogLineN(logThreads, "Leaving scheduling loop");
++	AMTRACE("leaving loop");
+ 
+ 	return 0;
+ }
+diff --git a/src/amule.cpp b/src/amule.cpp
+index bf15bf2..9542146 100644
+--- a/src/amule.cpp
++++ b/src/amule.cpp
+@@ -69,6 +69,12 @@
+ #include "FriendList.h"			// Needed for CFriendList
+ #include "HTTPDownload.h"		// Needed for CHTTPDownloadThread
+ #include "InternalEvents.h"		// Needed for CMuleInternalEvent
++#ifdef __AMIGA__
++extern "C" void amigaamule_trace(const char *, ...);
++#define AMTRACE(...) amigaamule_trace(__VA_ARGS__)
++#else
++#define AMTRACE(...)
++#endif
+ #include "IPFilter.h"			// Needed for CIPFilter
+ #include "KnownFileList.h"		// Needed for CKnownFileList
+ #include "ListenSocket.h"		// Needed for CListenSocket
+@@ -657,7 +663,9 @@ bool CamuleApp::OnInit()
+ 	// so FlushBuffer's PB_PENDING items would never drain and the
+ 	// `.part` file would stay at 0 bytes despite the network side
+ 	// happily receiving chunks (#849).
++	AMTRACE("before ipfilter");
+ 	ipfilter	= new CIPFilter();
++	AMTRACE("after ipfilter");
+ 
+ 	// Creates all needed listening sockets
+ 	wxString msg;
+@@ -675,7 +683,9 @@ bool CamuleApp::OnInit()
+ 	// sharedfiles->Reload() returns below.
+ 
+ 	// Create main dialog, or fork to background (daemon).
++	AMTRACE("before InitGui");
+ 	InitGui(m_geometryEnabled, m_geometryString);
++	AMTRACE("after InitGui");
+ 
+ #ifdef AMULE_DAEMON
+ 	// Need to refresh wxSingleInstanceChecker after the daemon fork() !
+@@ -688,11 +698,15 @@ bool CamuleApp::OnInit()
+ 	// Has to be created after the call to InitGui, as fork
+ 	// (when using posix threads) only replicates the mainthread,
+ 	// and the UBT constructor creates a thread.
++	AMTRACE("before UBT");
+ 	uploadBandwidthThrottler = new UploadBandwidthThrottler();
++	AMTRACE("after UBT");
+ 
+ 	// Start disk I/O thread — must be after uploadBandwidthThrottler.
+ 	// eMule ref: emule.cpp:748
++	AMTRACE("before diskio");
+ 	uploadDiskIOThread = new CUploadDiskIOThread();
++	AMTRACE("after diskio");
+ 
+ 	// Download disk-write and hashing threads. Same constraint as the
+ 	// upload disk I/O thread above: each ctor calls wxThread::Run(),
+@@ -700,24 +714,38 @@ bool CamuleApp::OnInit()
+ 	// the child. Constructing them post-fork ensures the spawned
+ 	// POSIX threads belong to the daemon child and actually drain the
+ 	// PartFileBufferedData queue (#849).
++	AMTRACE("before pfwrite");
+ 	partFileWriteThread = new CPartFileWriteThread();
++	AMTRACE("after pfwrite");
++	AMTRACE("before pfhash");
+ 	partFileHashThread = new CPartFileHashThread();
++	AMTRACE("after pfhash");
+ 
++	AMTRACE("before asio");
+ 	m_AsioService = new CAsioService;
++	AMTRACE("after asio");
+ 
+ 	// Start performing background tasks
+ 	// This will start loading the IP filter. It will start right away.
+ 	// Log is confusing, because log entries from background will only be printed
+ 	// once foreground becomes idle, and that will only be after loading
+ 	// of the partfiles has finished.
++	AMTRACE("before sched");
+ 	CThreadScheduler::Start();
++	AMTRACE("after sched");
+ 
+ 	// These must be initialized after the gui is loaded.
+ 	if (thePrefs::GetNetworkED2K()) {
++	AMTRACE("before serverlist");
+ 		serverlist->Init();
++	AMTRACE("after serverlist");
+ 	}
++	AMTRACE("before metfiles");
+ 	downloadqueue->LoadMetFiles(thePrefs::GetTempDir());
++	AMTRACE("after metfiles");
++	AMTRACE("before shared");
+ 	sharedfiles->Reload();
++	AMTRACE("after shared");
+ 
+ 	// Fire the deferred startup HTTP downloads now that the heavy local
+ 	// I/O is done — see the comment in OnInit() further up.
+@@ -733,7 +761,9 @@ bool CamuleApp::OnInit()
+ 			new CHTTPDownloadThread("https://api.github.com/repos/amule-org/amule/releases/latest",
+ 				thePrefs::GetConfigDir() + "last_version_check", thePrefs::GetConfigDir() + "last_version", HTTP_VersionCheck, false, false);
+ 		version_check->Create();
++	AMTRACE("before versioncheck");
+ 		version_check->Run();
++	AMTRACE("after versioncheck");
+ 	}
+ 	if (thePrefs::GetNetworkED2K() && thePrefs::AutoServerlist()) {
+ 		serverlist->StartAutoUpdate();
+@@ -748,13 +778,18 @@ bool CamuleApp::OnInit()
+ 	}
+ 
+ 	// Ensure that the up/down ratio is used
++	AMTRACE("before ratio");
+ 	CPreferences::CheckUlDlRatio();
++	AMTRACE("after ratio");
+ 
+ 	// Load saved friendlist (now, so it can update in GUI right away)
++	AMTRACE("before friends");
+ 	friendlist->LoadList();
++	AMTRACE("after friends");
+ 
+ 	// The user can start pressing buttons like mad if he feels like it.
+ 	m_app_state = APP_STATE_RUNNING;
++	AMTRACE("running");
+ 
+ 	{
+ 		const bool needServerMet = !serverlist->GetServerCount() && thePrefs::GetNetworkED2K();
