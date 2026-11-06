@@ -1,0 +1,14 @@
+# AmigaOS has no users (getuid() is always 0): no "running as root" warning.
+diff --git a/src/amule.cpp b/src/amule.cpp
+index c7364d4..bf15bf2 100644
+--- a/src/amule.cpp
++++ b/src/amule.cpp
+@@ -583,7 +583,7 @@ bool CamuleApp::OnInit()
+ 		AddLogLineNS(_("Password set and external connections enabled."));
+ 	}
+ 
+-#ifndef __WINDOWS__
++#if !defined(__WINDOWS__) && !defined(__AMIGA__)	// AmigaOS has no users: getuid() is 0
+ 	if (getuid() == 0) {
+ 		wxString msg =
+ 			"Warning! You are running aMule as root.\n"

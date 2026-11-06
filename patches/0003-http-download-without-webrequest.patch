@@ -1,0 +1,95 @@
+wxWidgets without wxWebRequest: startup HTTP downloads end with an error (AmigaOS toolkit, for now)
+
+diff --git a/src/HTTPDownload.cpp b/src/HTTPDownload.cpp
+index 5f60dd4..387354b 100644
+--- a/src/HTTPDownload.cpp
++++ b/src/HTTPDownload.cpp
+@@ -239,6 +239,13 @@ CHTTPDownloadThread::CHTTPDownloadThread(const wxString& url, const wxString& fi
+ 		return;
+ 	}
+ 
++#if !wxUSE_WEBREQUEST
++	// wxWidgets without wxWebRequest (the AmigaOS toolkit, for now): no
++	// startup downloads; the files can be added by hand.
++	AddLogLineC(CFormat(_("HTTP downloads are not available on this system: %s")) % m_url);
++	FinishAndDestroy(HTTP_Error);
++}
++#else
+ 	ApplyProxyToDefaultSession();
+ 
+ 	m_request = wxWebSession::GetDefault().CreateRequest(this, m_url);
+@@ -279,6 +286,7 @@ CHTTPDownloadThread::CHTTPDownloadThread(const wxString& url, const wxString& fi
+ 	Bind(wxEVT_WEBREQUEST_STATE, &CHTTPDownloadThread::OnStateEvent, this);
+ 	m_request.Start();
+ }
++#endif // wxUSE_WEBREQUEST
+ 
+ 
+ // Format the given date to a RFC-2616 compliant HTTP date.
+@@ -292,6 +300,7 @@ wxString CHTTPDownloadThread::FormatDateHTTP(const wxDateTime& date)
+ }
+ 
+ 
++#if wxUSE_WEBREQUEST
+ void CHTTPDownloadThread::OnStateEvent(wxWebRequestEvent& evt)
+ {
+ 	switch (evt.GetState()) {
+@@ -387,6 +396,7 @@ void CHTTPDownloadThread::OnStateEvent(wxWebRequestEvent& evt)
+ 			break;
+ 	}
+ }
++#endif // wxUSE_WEBREQUEST
+ 
+ 
+ void CHTTPDownloadThread::FinishAndDestroy(int result)
+@@ -439,6 +449,7 @@ void CHTTPDownloadThread::DetachCompanion()
+ 
+ void CHTTPDownloadThread::Stop()
+ {
++#if wxUSE_WEBREQUEST
+ 	if (m_request.IsOk() && !m_finishPosted) {
+ 		// Fire-and-forget: wxWebRequest will schedule a State_Cancelled
+ 		// event on the main loop. Our OnStateEvent will run
+@@ -449,6 +460,11 @@ void CHTTPDownloadThread::Stop()
+ 		// called before Start() had a chance). Finish synchronously.
+ 		FinishAndDestroy(HTTP_Error);
+ 	}
++#else
++	if (!m_finishPosted) {
++		FinishAndDestroy(HTTP_Error);
++	}
++#endif
+ }
+ 
+ 
+diff --git a/src/HTTPDownload.h b/src/HTTPDownload.h
+index 30afb25..9ac775d 100644
+--- a/src/HTTPDownload.h
++++ b/src/HTTPDownload.h
+@@ -33,7 +33,9 @@
+ #include <wx/webrequest.h>	// Needed for wxWebRequest
+ #include <set>
+ 
++#if wxUSE_WEBREQUEST
+ class wxWebRequestEvent;
++#endif
+ 
+ 
+ enum HTTPDownloadResult {
+@@ -85,12 +87,16 @@ public:
+ 	void	DetachCompanion();
+ 
+ private:
++#if wxUSE_WEBREQUEST
+ 	void	OnStateEvent(wxWebRequestEvent& evt);
++#endif
+ 	void	FinishAndDestroy(int result);
+ 
+ 	static wxString FormatDateHTTP(const wxDateTime& date);
+ 
++#if wxUSE_WEBREQUEST
+ 	wxWebRequest		m_request;
++#endif
+ 	wxString		m_url;
+ 	wxString		m_tempfile;
+ 	wxDateTime		m_lastmodified;	//! Date on which the file being updated was last modified.

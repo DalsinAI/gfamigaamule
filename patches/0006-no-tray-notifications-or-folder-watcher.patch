@@ -1,0 +1,152 @@
+# AmigaOS has no system tray, desktop notifications or wxFileSystemWatcher:
+# do-nothing tray and folder-watcher classes, the tray preference reads off,
+# and the finished-download notification is left out (the log line stays).
+diff --git a/src/MuleTrayIcon.cpp b/src/MuleTrayIcon.cpp
+index f8df77b..bb326de 100644
+--- a/src/MuleTrayIcon.cpp
++++ b/src/MuleTrayIcon.cpp
+@@ -24,6 +24,8 @@
+ // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301, USA
+ //
+ 
++#ifndef __AMIGA__	// no system tray (MuleTrayIcon.h)
++
+ #include <wx/app.h>
+ 
+ #include "MuleTrayIcon.h"
+@@ -1007,3 +1009,5 @@ void CMuleTrayIcon::SwitchShow(wxTaskBarIconEvent&)
+ #endif  // !WITH_LIBAYATANA_APPINDICATOR
+ 
+ // File_checked_for_headers
++
++#endif // __AMIGA__
+diff --git a/src/MuleTrayIcon.h b/src/MuleTrayIcon.h
+index 6347c30..1dc467c 100644
+--- a/src/MuleTrayIcon.h
++++ b/src/MuleTrayIcon.h
+@@ -50,6 +50,27 @@ enum {
+ 	TRAY_ICON_HIGHID
+ };
+ 
++#ifdef __AMIGA__
++// AmigaOS has no system tray: the preference is off and this class does
++// nothing, so the main window's calls stay as they are.
++class CMuleTrayIcon
++{
++public:
++	CMuleTrayIcon() {}
++	~CMuleTrayIcon() {}
++	void SetTrayIcon(int, uint32) {}
++	void SetTrayToolTip(const wxString&) {}
++	void DoConnectDisconnect() {}
++	void DoShowHide() {}
++	void DoShow() {}
++	void DoHide() {}
++	void DoExit() {}
++	void DoSetUploadLimit(long) {}
++	void DoSetDownloadLimit(long) {}
++	void RebuildMenu() {}
++};
++#else // !__AMIGA__
++
+ // Backend selection:
+ //
+ // Linux with libayatana-appindicator3 → SNI (StatusNotifierItem)
+@@ -156,6 +177,8 @@ private:
+ #endif
+ };
+ 
++#endif // __AMIGA__
++
+ #endif // DAEMON
+ 
+ #endif //MULETRAYICON_H
+diff --git a/src/PartFile.cpp b/src/PartFile.cpp
+index a2bd299..07aa71c 100644
+--- a/src/PartFile.cpp
++++ b/src/PartFile.cpp
+@@ -39,7 +39,7 @@
+ #include <wx/utils.h>
+ #include <wx/tokenzr.h>		// Needed for wxStringTokenizer
+ 
+-#ifndef AMULE_DAEMON
++#if !defined(AMULE_DAEMON) && !defined(__AMIGA__)
+ #include <wx/notifmsg.h>	// Needed for wxNotificationMessage
+ #endif
+ 
+@@ -2316,7 +2316,7 @@ void CPartFile::CompleteFileEnded(bool errorOccured, const CPath& newname)
+ 		m_CorruptionBlackBox->Free();
+ 
+ 		AddLogLineC(CFormat( _("Finished downloading: %s") ) % GetFileName() );
+-#ifndef AMULE_DAEMON
++#if !defined(AMULE_DAEMON) && !defined(__AMIGA__)	// no desktop notifications
+ 		if (thePrefs::ShowNotifications()) {
+ 			wxNotificationMessage *notification = new wxNotificationMessage ();
+ 			notification->SetTitle("aMule");
+diff --git a/src/Preferences.h b/src/Preferences.h
+index 07d2a4f..629fa0a 100644
+--- a/src/Preferences.h
++++ b/src/Preferences.h
+@@ -257,7 +257,11 @@ public:
+ 	static bool		DoMinToTray()			{ return s_mintotray; }
+ 	static bool		ShowNotifications()		{ return s_notify; }
+ 	static void		SetMinToTray(bool val)		{ s_mintotray = val; }
++#ifdef __AMIGA__
++	static bool		UseTrayIcon()			{ return false; }	// no system tray
++#else
+ 	static bool		UseTrayIcon()			{ return s_trayiconenabled; }
++#endif
+ 	static void		SetUseTrayIcon(bool val)	{ s_trayiconenabled = val; }
+ 	static bool		HideOnClose()			{ return s_hideonclose; }
+ 	static void		SetHideOnClose(bool val)	{ s_hideonclose = val; }
+diff --git a/src/SharedDirWatcher.cpp b/src/SharedDirWatcher.cpp
+index f8e4cc3..69cc2b0 100644
+--- a/src/SharedDirWatcher.cpp
++++ b/src/SharedDirWatcher.cpp
+@@ -14,6 +14,8 @@
+ // GNU General Public License for more details.
+ //
+ 
++#ifndef __AMIGA__	// no wxFileSystemWatcher: shares are rescanned by hand
++
+ #include "SharedDirWatcher.h"
+ 
+ #include <wx/app.h>
+@@ -614,3 +616,5 @@ void CSharedDirWatcher::OnMacRunLoopPump(wxTimerEvent & WXUNUSED(event))
+ 	CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+ }
+ #endif
++
++#endif // __AMIGA__
+diff --git a/src/SharedDirWatcher.h b/src/SharedDirWatcher.h
+index c360111..406c059 100644
+--- a/src/SharedDirWatcher.h
++++ b/src/SharedDirWatcher.h
+@@ -17,6 +17,20 @@
+ #ifndef SHAREDDIRWATCHER_H
+ #define SHAREDDIRWATCHER_H
+ 
++#ifdef __AMIGA__
++// AmigaOS has no wxFileSystemWatcher: this one does nothing, and shared
++// folders are rescanned by hand, as with the watcher turned off.
++class CSharedFileList;
++class CSharedDirWatcher
++{
++public:
++	explicit CSharedDirWatcher(CSharedFileList *) {}
++	void Enable() {}
++	void Disable() {}
++	void Refresh() {}
++};
++#else // !__AMIGA__
++
+ #include <wx/event.h>
+ #include <wx/timer.h>
+ #include <wx/fswatcher.h>
+@@ -157,4 +171,6 @@ private:
+ 	DECLARE_EVENT_TABLE()
+ };
+ 
++#endif // __AMIGA__
++
+ #endif // SHAREDDIRWATCHER_H

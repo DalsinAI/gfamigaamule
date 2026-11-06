@@ -1,0 +1,18 @@
+# AmigaOS: the IP filter file's FILE starts with its error flag cleared
+# (a stale flag made flex report "input in flex scanner failed" and exit).
+diff --git a/src/IPFilter.cpp b/src/IPFilter.cpp
+index 3062ef2..73ef3c4 100644
+--- a/src/IPFilter.cpp
++++ b/src/IPFilter.cpp
+@@ -305,6 +305,11 @@ private:
+ 		wxFFile readFile;
+ 		if (readFile.Open(path.GetRaw())) {
+ 			yyip_Line = 1;
++#ifdef __AMIGA__
++			// libnix can hand out a FILE whose error flag is still set
++			// from an earlier file: flex would take that for a failed read
++			clearerr(readFile.fp());
++#endif
+ 			yyiprestart(readFile.fp());
+ 			uint32 IPStart = 0;
+ 			uint32 IPEnd   = 0;

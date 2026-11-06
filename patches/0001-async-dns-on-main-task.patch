@@ -1,0 +1,57 @@
+diff --git a/src/AsyncDNS.cpp b/src/AsyncDNS.cpp
+index 2991e26..0b8a901 100644
+--- a/src/AsyncDNS.cpp
++++ b/src/AsyncDNS.cpp
+@@ -32,8 +32,12 @@
+ 
+ 
+ CAsyncDNS::CAsyncDNS(const wxString& ipName, DnsSolveType type, wxEvtHandler* handler, void* socket)
++#ifdef __AMIGA__
++	: m_ipName(ipName.wc_str())
++#else
+ 	: wxThread(wxTHREAD_DETACHED)
+ 	, m_ipName(ipName.wc_str())		// make a deep copy to to circument the thread-unsafe wxString reference counting
++#endif
+ {
+ 	m_type = type;
+ 	m_socket = socket;
+@@ -41,7 +45,7 @@ CAsyncDNS::CAsyncDNS(const wxString& ipName, DnsSolveType type, wxEvtHandler* ha
+ }
+ 
+ 
+-wxThread::ExitCode CAsyncDNS::Entry()
++CAsyncDNS::ExitCode CAsyncDNS::Entry()
+ {
+ 	uint32 result = StringHosttoUint32(m_ipName);
+ 	uint32 event_id = 0;
+diff --git a/src/AsyncDNS.h b/src/AsyncDNS.h
+index c007964..eb0513b 100644
+--- a/src/AsyncDNS.h
++++ b/src/AsyncDNS.h
+@@ -46,11 +46,26 @@ enum DnsSolveType {
+ #define DNS_SOLVE_TIME 30*60*1000
+ 
+ 
++#ifdef __AMIGA__
++// AmigaOS: bsdsocket.library is opened per task, so a lookup can't run in a
++// thread of its own. The lookup runs on the calling (main) task when Run()
++// is called; its answer still arrives as the same queued event.
++class CAsyncDNS
++{
++public:
++	typedef void *ExitCode;
++	CAsyncDNS(const wxString& ipName, DnsSolveType type, wxEvtHandler* handler, void* socket = NULL);
++	ExitCode Entry();
++	wxThreadError Create() { return wxTHREAD_NO_ERROR; }
++	wxThreadError Run() { Entry(); delete this; return wxTHREAD_NO_ERROR; }
++	wxThreadError Delete() { delete this; return wxTHREAD_NO_ERROR; }
++#else
+ class CAsyncDNS : public wxThread
+ {
+ public:
+ 	CAsyncDNS(const wxString& ipName, DnsSolveType type, wxEvtHandler* handler, void* socket = NULL);
+ 	virtual ExitCode Entry();
++#endif
+ 
+ private:
+ 	DnsSolveType m_type;
