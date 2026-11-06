@@ -2,6 +2,7 @@
  * which has no /dev/urandom. A ChaCha20 stream whose key comes from the
  * EClock, the date, the task, the stack and free memory, and takes in a
  * fresh EClock reading at every call.
+ * amigaamule_ticks_ms(), aMule's tick count, reads the same EClock.
  * Copyright (c) 2026 AmiCradle Team */
 /* our own timer.device base: not a TimerBase another library may define */
 #define TimerBase amigaamule_TimerBase
@@ -63,6 +64,21 @@ static void eclock(unsigned long v[2])
         v[0] ^= e.ev_lo;
         v[1] ^= e.ev_hi;
     }
+}
+
+/* milliseconds since an arbitrary start, from the EClock: monotonic */
+unsigned long long amigaamule_ticks_ms(void)
+{
+    struct EClockVal e;
+    unsigned long v[2] = { 0, 0 };
+    unsigned long freq;
+    unsigned long long t;
+    eclock(v);  /* opens timer.device on the first call */
+    if (!TimerBase)
+        return 0;
+    freq = ReadEClock(&e);
+    t = ((unsigned long long)e.ev_hi << 32) | e.ev_lo;
+    return freq ? (t / freq) * 1000ULL + (t % freq) * 1000ULL / freq : 0;
 }
 
 static void stir(void)

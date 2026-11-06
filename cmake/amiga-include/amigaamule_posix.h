@@ -72,6 +72,7 @@ char *if_indextoname(unsigned int index, char *name);
 int socketpair(int domain, int type, int protocol, int sv[2]);
 ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
 ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+char *getpass(const char *prompt);
 /* libnix's socket library has these; its netdb.h does not declare them */
 int getaddrinfo(const char *node, const char *service,
                 const struct addrinfo *hints, struct addrinfo **res);

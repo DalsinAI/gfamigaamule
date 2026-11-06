@@ -1,0 +1,25 @@
+# AmigaOS: GetTickCount64() from the EClock (libnix has no clock_gettime()).
+diff --git a/src/GetTickCount.cpp b/src/GetTickCount.cpp
+index f6ca90f..9be3ff5 100644
+--- a/src/GetTickCount.cpp
++++ b/src/GetTickCount.cpp
+@@ -61,6 +61,19 @@ uint64 GetTickCount_64()
+ 	return li.QuadPart * tickFactor;
+ }
+ 
++#elif defined(__AMIGA__)
++
++// the EClock (timer.device): monotonic, from the gfamigaamule compat library
++extern "C" unsigned long long amigaamule_ticks_ms(void);
++
++uint64 GetTickCount64(void) {
++	return amigaamule_ticks_ms();
++}
++
++	void StartTickTimer() {}
++
++	void StopTickTimer() {}
++
+ #else
+ 
+ #include <time.h>		// Needed for clock_gettime
