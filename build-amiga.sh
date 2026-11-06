@@ -72,6 +72,12 @@ mkdir -p "$OUT"
 "$TC/bin/m68k-amigaos-gcc" -noixemul -m68040 -O2 -specs="$HERE/scripts/m68k-soft-m68040.specs" \
     -Wl,--wrap=open,--wrap=close,--wrap=socket,--wrap=accept -L"$WORK/sysroot/lib" \
     -o "$OUT/fdprobe" "$HERE/tests/fdprobe.c" -lamigacompat -lsocket -lpthread || echo "fdprobe-locked: not built"
+# fpuauto (FPU when there is one, in the stove's own specs): does this link get it?
+printf 'double f(double a,double b){return a*b+1.0;}\nint main(int c,char**v){return (int)f(c,2.5);}\n' > "$WORK/fpucheck.c"
+if "$TC/bin/m68k-amigaos-gcc" -noixemul -m68040 -O2 -specs="$HERE/scripts/m68k-soft-m68040.specs" \
+        -Wl,-Map="$WORK/fpucheck.map" -o "$WORK/fpucheck" "$WORK/fpucheck.c" 2>/dev/null; then
+    echo "fpuauto: $(grep -c -i fpuauto "$WORK/fpucheck.map") map lines"
+fi
 left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 [ "$left" -gt 60 ] || { echo "no time left for aMule this run"; exit 0; }
 TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WX_SDK" BUDGET=$left \
