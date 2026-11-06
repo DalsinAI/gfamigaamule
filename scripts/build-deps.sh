@@ -22,7 +22,7 @@ if [ "$(cat "$SYS/lib/.zlib" 2>/dev/null)" != "$ZS" ]; then
 fi
 
 # compat calls libnix lacks (deps/compat): poll() on select()
-CS=$(cat "$HERE"/deps/compat/* "$HERE"/cmake/amiga-include/sys/poll.h "$HERE"/cmake/amiga-include/amigaamule_posix.h | sha256sum | cut -c1-16)
+CS=$( (cat "$HERE"/deps/compat/* "$HERE"/cmake/amiga-include/sys/poll.h "$HERE"/cmake/amiga-include/amigaamule_posix.h; echo "$TOOLCHAIN") | sha256sum | cut -c1-16)
 if [ "$(cat "$SYS/lib/.compat" 2>/dev/null)" != "$CS" ]; then
     rm -f "$SYS/lib/libamigacompat.a"
     for c in "$HERE"/deps/compat/*.c; do
