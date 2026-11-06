@@ -1,5 +1,5 @@
 #!/bin/sh
-# Crypto++ (static, no assembly) and Boost's headers into the sysroot
+# Crypto++ (static, no assembly) and the GFOpenBoost SDK into the sysroot
 # aMule builds against, at the versions amule.lock gives.
 #   TOOLCHAIN=.../prefix WORK=build scripts/build-deps.sh
 # Copyright (c) 2026 AmiCradle Team
@@ -32,44 +32,18 @@ if [ "$(cat "$SYS/lib/.compat" 2>/dev/null)" != "$CS" ]; then
     echo "$CS" > "$SYS/lib/.compat"
 fi
 
-# Boost: headers only
-if [ ! -f "$SYS/include/boost/version.hpp" ] || ! grep -q "\"$(echo "$BOOST_VERSION" | tr . _ | sed 's/_0$//')\"" "$SYS/include/boost/version.hpp" \
-        || [ "$(cat "$SYS/include/.boost-edits" 2>/dev/null)" != 2 ]; then
-    T="$WORK/deps/boost-$BOOST_VERSION.tar.xz"
-    [ -f "$T" ] || curl -sSfL -o "$T" "$BOOST_URL"
-    echo "$BOOST_SHA256  $T" | sha256sum -c - >/dev/null
-    rm -rf "$WORK/deps/boost-$BOOST_VERSION" "$SYS/include/boost"
-    tar xJf "$T" -C "$WORK/deps" "boost-$BOOST_VERSION/boost"
-    mv "$WORK/deps/boost-$BOOST_VERSION/boost" "$SYS/include/boost"
-    # Asio wakes its select() with a loopback socket pair on AmigaOS, as on
-    # Windows: libnix's select() watches sockets only
-    A="$SYS/include/boost/asio/detail"
-    for f in select_interrupter.hpp socket_select_interrupter.hpp impl/socket_select_interrupter.ipp; do
-        sed -i 's/|| defined(__SYMBIAN32__)$/|| defined(__SYMBIAN32__) || defined(__AMIGA__)/' "$A/$f"
-        grep -q '__AMIGA__' "$A/$f" || { echo "$f: edit not applied"; exit 1; }
-    done
-    echo 2 > "$SYS/include/.boost-edits"
-    # aMule's CMake looks Boost up as a CONFIG package: a header-only one
-    D="$SYS/lib/cmake/Boost-$BOOST_VERSION"; mkdir -p "$D"
-    cat > "$D/BoostConfig.cmake" <<CFG
-set(Boost_VERSION $BOOST_VERSION)
-set(Boost_INCLUDE_DIRS "$SYS/include")
-set(Boost_LIBRARIES "")
-if(NOT TARGET Boost::headers)
-  add_library(Boost::headers INTERFACE IMPORTED)
-  set_target_properties(Boost::headers PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "$SYS/include")
-  add_library(Boost::boost ALIAS Boost::headers)
-endif()
-set(Boost_FOUND TRUE)
-CFG
-    cat > "$D/BoostConfigVersion.cmake" <<CFG
-set(PACKAGE_VERSION $BOOST_VERSION)
-if(PACKAGE_FIND_VERSION VERSION_GREATER PACKAGE_VERSION)
-  set(PACKAGE_VERSION_COMPATIBLE FALSE)
-else()
-  set(PACKAGE_VERSION_COMPATIBLE TRUE)
-endif()
-CFG
+# Boost: the shared GFOpenBoost SDK, as it comes
+if [ "$(cat "$SYS/include/.gfopenboost" 2>/dev/null)" != "$GFOPENBOOST_SHA256" ]; then
+    T="$WORK/deps/gfopenboost-$GFOPENBOOST_VERSION-sdk.tar.xz"
+    [ -f "$T" ] || curl -sSfL -o "$T" "$GFOPENBOOST_URL"
+    echo "$GFOPENBOOST_SHA256  $T" | sha256sum -c - >/dev/null
+    G="$WORK/deps/gfopenboost-$GFOPENBOOST_VERSION"
+    rm -rf "$G" "$SYS/include/boost" "$SYS/include/.boost-edits" "$SYS"/lib/cmake/Boost-* "$SYS"/lib/libboost_*.a
+    tar xJf "$T" -C "$WORK/deps"
+    cp -a "$G/include/boost" "$SYS/include/boost"
+    cp "$G"/lib/libboost_*.a "$SYS/lib/"
+    mkdir -p "$SYS/lib/cmake"; cp -a "$G/lib/cmake/Boost-$GFOPENBOOST_VERSION" "$SYS/lib/cmake/"
+    echo "$GFOPENBOOST_SHA256" > "$SYS/include/.gfopenboost"
 fi
 
 # Crypto++: its own GNUmakefile, static, portable C++ only

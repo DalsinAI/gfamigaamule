@@ -38,7 +38,7 @@ fi
 # probe (which shows only the first)
 printf '#include <boost/asio.hpp>\nint main(){boost::asio::io_context c; boost::asio::ip::tcp::socket s(c); c.poll(); return 0;}\n' > "$WORK/asioprobe.cpp"
 if ! "$TOOLCHAIN/bin/m68k-amigaos-g++" -noixemul -m68040 -std=gnu++17 -I"$HERE/cmake/amiga-include" -include amigaamule_posix.h \
-        -DBOOST_ASIO_DISABLE_THREADS -DBOOST_ASIO_DISABLE_SERIAL_PORT -I"$SYS/include" \
+        -DBOOST_ASIO_DISABLE_THREADS -DBOOST_ASIO_DISABLE_SERIAL_PORT -DBOOST_ASIO_SEPARATE_COMPILATION -I"$SYS/include" \
         -fsyntax-only -fmax-errors=60 "$WORK/asioprobe.cpp" > "$WORK/asioprobe.log" 2>&1; then
     echo "asio probe failed:"; grep -E 'error' "$WORK/asioprobe.log" | sort -u | head -60
     # what libnix's headers and socket library have

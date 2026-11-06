@@ -7,9 +7,11 @@ CRYPTOPP_GIT=https://github.com/weidai11/cryptopp.git
 CRYPTOPP_TAG=CRYPTOPP_8_9_0
 CRYPTOPP_COMMIT=843d74c7c97f9e19a615b8ff3c0ca06599ca501b
 # Boost: only its headers (Asio, and what Asio includes)
-BOOST_VERSION=1.92.0
-BOOST_URL=https://github.com/boostorg/boost/releases/download/boost-1.92.0/boost-1.92.0-b2-nodocs.tar.xz
-BOOST_SHA256=ea7b982002cc9dfbe59b0b217b206f470dc75f3de0bb2973d844118934d82411
+# Boost: the project's shared GFOpenBoost SDK (headers with the Amiga
+# config, libboost_asio.a with Asio's separate compilation)
+GFOPENBOOST_VERSION=1.89.0
+GFOPENBOOST_URL=https://github.com/DalsinAI/gfopenboost/releases/download/v1.89.0-rc1/gfopenboost-1.89.0-sdk.tar.xz
+GFOPENBOOST_SHA256=a6cad796bc9f7ac84e81704bef6553f63588255eb7012512d0359654507be52a
 # Our own pieces, fetched at these commits (the toolkit with wxNet: branch team3/wxnet-sockets)
 WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
 WXT_COMMIT=e64c124a793773972ae5f0d8f93760c77d9b7ef4

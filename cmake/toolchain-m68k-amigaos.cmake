@@ -9,16 +9,17 @@ set(CMAKE_CXX_COMPILER "${AMIGA_TOOLCHAIN}/bin/m68k-amigaos-g++")
 set(CMAKE_AR "${AMIGA_TOOLCHAIN}/bin/m68k-amigaos-ar" CACHE FILEPATH "")
 set(CMAKE_RANLIB "${AMIGA_TOOLCHAIN}/bin/m68k-amigaos-ranlib" CACHE FILEPATH "")
 set(CMAKE_STRIP "${AMIGA_TOOLCHAIN}/bin/m68k-amigaos-strip" CACHE FILEPATH "")
-# Boost.Asio: one task (bsdsocket is per task), no serial ports
-set(AMIGA_ASIO_DEFS "-DBOOST_ASIO_DISABLE_THREADS -DBOOST_ASIO_DISABLE_SERIAL_PORT")
+# Boost.Asio: one task (bsdsocket is per task), no serial ports (GFOpenBoost's
+# Amiga config says so too); its code is in GFOpenBoost's libboost_asio.a
+set(AMIGA_ASIO_DEFS "-DBOOST_ASIO_DISABLE_THREADS -DBOOST_ASIO_DISABLE_SERIAL_PORT -DBOOST_ASIO_SEPARATE_COMPILATION")
 set(CMAKE_C_FLAGS_INIT "-noixemul -m68040 -I${CMAKE_CURRENT_LIST_DIR}/amiga-include -I${AMIGA_SYSROOT}/include")
 set(CMAKE_CXX_FLAGS_INIT "-noixemul -m68040 -I${CMAKE_CURRENT_LIST_DIR}/amiga-include -I${AMIGA_SYSROOT}/include -include amigaamule_posix.h ${AMIGA_ASIO_DEFS}")
 # libnix's fd table under one lock (deps/compat/fdlock.c)
 set(AMIGA_FDLOCK "-Wl,--wrap=open,--wrap=close,--wrap=socket,--wrap=accept")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-noixemul -m68040 -specs=${AMIGA_SPECS} -L${AMIGA_SYSROOT}/lib ${AMIGA_FDLOCK}")
 # after every library, whole archives included
-set(CMAKE_C_STANDARD_LIBRARIES "-lamigacompat -lsocket -lpthread -latomic -lm")
-set(CMAKE_CXX_STANDARD_LIBRARIES "-lamigacompat -lsocket -lpthread -latomic -lm")
+set(CMAKE_C_STANDARD_LIBRARIES "-lboost_asio -lamigacompat -lsocket -lpthread -latomic -lm")
+set(CMAKE_CXX_STANDARD_LIBRARIES "-lboost_asio -lamigacompat -lsocket -lpthread -latomic -lm")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_FIND_ROOT_PATH "${AMIGA_SYSROOT}")
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
