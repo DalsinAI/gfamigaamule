@@ -14,7 +14,7 @@ GFOPENBOOST_URL=https://github.com/DalsinAI/gfopenboost/releases/download/v1.89.
 GFOPENBOOST_SHA256=a6cad796bc9f7ac84e81704bef6553f63588255eb7012512d0359654507be52a
 # Our own pieces, fetched at these commits (the toolkit with wxNet: branch team3/wxnet-sockets)
 WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
-WXT_COMMIT=e64c124a793773972ae5f0d8f93760c77d9b7ef4
+WXT_COMMIT=9ee45236c4ef2d9e5499ef9af9cd1ab5c2c09d56
 # Lab: the wx ports' combined SDK (toolkit main + PRs #6, #7 and the 6 Nov
 # branches), used as is when this file is on the build host; otherwise the
 # toolkit is built from WXT_COMMIT
