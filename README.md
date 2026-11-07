@@ -22,6 +22,29 @@ The first run fetches the GFOpenWX Toolkit at the commit `amule.lock` pins and b
 
 The first build is the monolithic `amule` (window app). The daemon, remote GUI, web server, UPnP, GeoIP and translations are off for now.
 
+## ARexx
+
+aMule has an ARexx port, `AMULE.1`, from the GFOpenWX Toolkit's `wxARexxPort` on arexx.class (patch 0010).
+
+| Command | Does |
+| --- | --- |
+| `ADDLINK LINK/A` | an `ed2k://` or magnet link to download (RC 10 when aMule doesn't take it) |
+| `CONNECT` | connect, as the Connect button (ED2K and Kad, as the preferences have them) |
+| `DISCONNECT` | disconnect, or stop trying; Kad too |
+| `STATUS` | RESULT: `ED2K KAD`, each 1 when connected, else 0 |
+| `QUIT`, `ACTIVATE`, `DEACTIVATE`, `VERSION`, `HELP`, `FAULT` | the toolkit's standard commands |
+
+```
+/* aMule: connect and fetch a file */
+OPTIONS RESULTS
+ADDRESS 'AMULE.1'
+'CONNECT'
+'ADDLINK ed2k://|file|example.lha|123456|0123456789ABCDEF0123456789ABCDEF|/'
+'STATUS'
+PARSE VAR result ed2k kad
+SAY 'ED2K' ed2k 'Kad' kad
+```
+
 ## Licence
 
 aMule is GPL v2 or later; the patches and build files here are under the same licence.

@@ -12,11 +12,10 @@ CRYPTOPP_COMMIT=843d74c7c97f9e19a615b8ff3c0ca06599ca501b
 GFOPENBOOST_VERSION=1.89.0
 GFOPENBOOST_URL=https://github.com/DalsinAI/gfopenboost/releases/download/v1.89.0-rc1/gfopenboost-1.89.0-sdk.tar.xz
 GFOPENBOOST_SHA256=a6cad796bc9f7ac84e81704bef6553f63588255eb7012512d0359654507be52a
-# Our own pieces, fetched at these commits (the toolkit with wxNet: branch team3/wxnet-sockets)
+# Our own pieces, fetched at these commits (the toolkit: main 1c4e5dd, v0.1.0-rc4, with wxNet and wxARexxPort)
 WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
-WXT_COMMIT=9ee45236c4ef2d9e5499ef9af9cd1ab5c2c09d56
-# Lab: the wx ports' combined SDK (toolkit main + PRs #6, #7 and the 6 Nov
-# branches), used as is when this file is on the build host; otherwise the
-# toolkit is built from WXT_COMMIT
-WXT_SDK_TAR=/run/media/da1ek/WorkingSpace/AmigaChrome/archive/daletop-offload-20261023/AmigaChrome-dev/cradle-builds/jobs/j20261106T134404-c36718/out/gfopenwx-sdk.tar.gz
-WXT_SDK_SHA256=68948c6f6941a69335c3116bd5efb490fbd2523c56991586ce9e742585cc68c9
+WXT_COMMIT=1c4e5dd981a8d3fb7ccb417bd91dd201bd18307d
+# A lab SDK used as is when this file is on the build host (empty: the
+# toolkit is built from WXT_COMMIT; the 6 Nov combined SDK lacks wxARexxPort)
+WXT_SDK_TAR=
+WXT_SDK_SHA256=
