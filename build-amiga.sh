@@ -31,8 +31,13 @@ fetch() {
         git -C "$d" checkout -q FETCH_HEAD
     fi
 }
-# a ready SDK from the lock, when it is on this host and its checksum holds
+# a ready SDK from the lock: the toolkit's release (or a file on this
+# host), used when its checksum holds
 WX_SDK=""
+if [ -z "${WXT_SRC:-}" ] && [ -n "${WXT_SDK_URL:-}" ] && [ -z "${WXT_SDK_TAR:-}" ]; then
+    WXT_SDK_TAR="$WORK/deps/$(basename "$WXT_SDK_URL")"
+    [ -f "$WXT_SDK_TAR" ] || curl -sSfL -o "$WXT_SDK_TAR" "$WXT_SDK_URL" || { echo "toolkit SDK download failed"; exit 1; }
+fi
 if [ -z "${WXT_SRC:-}" ] && [ -n "${WXT_SDK_TAR:-}" ] && [ -f "$WXT_SDK_TAR" ]; then
     D="$WORK/wxsdk-$(echo "$WXT_SDK_SHA256" | cut -c1-16)"
     if [ ! -x "$D/.ok" ]; then
