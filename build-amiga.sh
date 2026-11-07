@@ -35,7 +35,7 @@ fetch() {
 # host), used when its checksum holds
 WX_SDK=""
 if [ -z "${WXT_SRC:-}" ] && [ -n "${WXT_SDK_URL:-}" ] && [ -z "${WXT_SDK_TAR:-}" ]; then
-    WXT_SDK_TAR="$WORK/deps/$(basename "$WXT_SDK_URL")"
+    WXT_SDK_TAR="$WORK/deps/$(echo "$WXT_SDK_SHA256" | cut -c1-16)-$(basename "$WXT_SDK_URL")"
     [ -f "$WXT_SDK_TAR" ] || curl -sSfL -o "$WXT_SDK_TAR" "$WXT_SDK_URL" || { echo "toolkit SDK download failed"; exit 1; }
 fi
 if [ -z "${WXT_SRC:-}" ] && [ -n "${WXT_SDK_TAR:-}" ] && [ -f "$WXT_SDK_TAR" ]; then
