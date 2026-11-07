@@ -45,6 +45,8 @@ PARSE VAR result ed2k kad
 SAY 'ED2K' ed2k 'Kad' kad
 ```
 
+`Rexx/Status.rexx` (in the Rexx drawer beside the program) is an example.
+
 ## Licence
 
 aMule is GPL v2 or later; the patches and build files here are under the same licence.
