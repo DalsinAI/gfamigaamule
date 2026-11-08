@@ -20,12 +20,11 @@ What works
 ----------
 - The program starts, opens its sockets and loads its IP filter.
 - The Downloads, Searches, Shared files and Statistics pages.
+- HTTP downloads: server lists, nodes.dat and the version check, over
+  HTTP or HTTPS (HTTPS through gfopentls.library in LIBS:).
 
 Not yet
 -------
-- HTTP downloads (server lists, nodes.dat, the version check). Until
-  they come, add a server by hand on the Networks page, or put a
-  server.met in ENVARC:.aMule.
 - No tray icon, notifications or folder watching.
 
 Needs
