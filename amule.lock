@@ -12,9 +12,9 @@ CRYPTOPP_COMMIT=843d74c7c97f9e19a615b8ff3c0ca06599ca501b
 GFOPENBOOST_VERSION=1.89.0
 GFOPENBOOST_URL=https://github.com/DalsinAI/gfopenboost/releases/download/v1.89.0-rc2/gfopenboost-1.89.0-sdk.tar.xz
 GFOPENBOOST_SHA256=b00ac87dbb84899593c5f74e45ddd38f6706a10964435517c1a04fd265286c5f
-# The toolkit: GFOpenWX Toolkit 0.1.0 RC7's SDK (main 0dff5f9); without
+# The toolkit: GFOpenWX Toolkit 0.1.0 RC8's SDK (main 82ade89); without
 # the SDK the toolkit is built from WXT_COMMIT
 WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
-WXT_COMMIT=0dff5f9f4af5497a10479ba0bd522746da340819
-WXT_SDK_URL=https://github.com/DalsinAI/gfopenwxtoolkit/releases/download/v0.1.0-rc7/GFOpenWXToolkit-0.1.0-RC7-sdk.tar.gz
-WXT_SDK_SHA256=4ac663455e102f558e1db08ff2dd4de3731a2ba5f57611543dfa429b13ef0f7e
+WXT_COMMIT=82ade896d5e9e564830add94f87724ccddddab6c
+WXT_SDK_URL=https://github.com/DalsinAI/gfopenwxtoolkit/releases/download/v0.1.0-rc8/GFOpenWXToolkit-0.1.0-RC8-sdk.tar.gz
+WXT_SDK_SHA256=1105f569f906006d5c3fcb746aedae168606fd6f9ef3c3b13b339f7bd6966a9f
