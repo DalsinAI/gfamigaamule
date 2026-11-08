@@ -29,6 +29,8 @@
     (abort "The aMule drawer has no aMule in it. Unpack the whole archive again."))
 (if (<> (exists (tackon #from "Libs/event.library") (noreq)) 1)
     (abort "The aMule drawer has no Libs/event.library in it. Unpack the whole archive again."))
+(if (<> (exists (tackon #from "Libs/regex.library") (noreq)) 1)
+    (abort "The aMule drawer has no Libs/regex.library in it. Unpack the whole archive again."))
 
 (welcome "This installs aMule 3.0.0-amiga.1 for AmigaOS 3.2 on a 68040, 68060 or 68080.")
 
@@ -54,6 +56,11 @@
     (prompt "Copying event.library to LIBS:")
     (help @copylib-help)
     (source (tackon #from "Libs/event.library"))
+    (dest "LIBS:"))
+(copylib
+    (prompt "Copying regex.library to LIBS:")
+    (help @copylib-help)
+    (source (tackon #from "Libs/regex.library"))
     (dest "LIBS:"))
 (complete 40)
 

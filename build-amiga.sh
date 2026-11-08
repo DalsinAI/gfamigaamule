@@ -90,7 +90,7 @@ left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WX_SDK" BUDGET=$left \
     sh "$HERE/scripts/build-amule.sh"
 
-# ---- the package: the aMule drawer with event.library, its GlowIcons and
+# ---- the package: the aMule drawer with event.library and regex.library, its GlowIcons and
 # Install-aMule (package/: made by amicradle's scripts/port_icons.py and
 # port_installer.py from package/icons.json and package/installer.json)
 if [ -f "$OUT/amule" ]; then
@@ -98,9 +98,16 @@ if [ -f "$OUT/amule" ]; then
     E="$WORK/deps/gfopenevent-$(echo "$GFOPENEVENT_SHA256" | cut -c1-16).zip"
     [ -f "$E" ] || curl -sSfL -o "$E" "$GFOPENEVENT_URL" || { echo "event.library download failed"; exit 1; }
     echo "$GFOPENEVENT_SHA256  $E" | sha256sum -c - >/dev/null || { echo "event.library archive checksum differs"; exit 1; }
+    # regex.library (GFOpenRegex): the toolkit's wxRegEx, which aMule's
+    # version check uses
+    X="$WORK/deps/gfopenregex-$(echo "$GFOPENREGEX_SHA256" | cut -c1-16).zip"
+    [ -f "$X" ] || curl -sSfL -o "$X" "$GFOPENREGEX_URL" || { echo "regex.library download failed"; exit 1; }
+    echo "$GFOPENREGEX_SHA256  $X" | sha256sum -c - >/dev/null || { echo "regex.library archive checksum differs"; exit 1; }
     PK="$WORK/pkg"; rm -rf "$PK"; mkdir -p "$PK/aMule/Libs"
     python3 -c 'import sys,zipfile; open(sys.argv[2],"wb").write(zipfile.ZipFile(sys.argv[1]).read("GFOpenEvent/Libs/event.library"))' \
         "$E" "$PK/aMule/Libs/event.library"
+    python3 -c 'import sys,zipfile; open(sys.argv[2],"wb").write(zipfile.ZipFile(sys.argv[1]).read("GFOpenRegex/Libs/regex.library"))' \
+        "$X" "$PK/aMule/Libs/regex.library"
     cp "$OUT/amule" "$PK/aMule/aMule"
     cp "$HERE/package/icons/aMule.info" "$PK/aMule/aMule.info"
     cp "$HERE/package/icons/aMule-drawer.info" "$PK/aMule.info"
@@ -111,9 +118,11 @@ if [ -f "$OUT/amule" ]; then
     elif command -v jlha >/dev/null 2>&1; then (cd "$PK" && jlha -aq "$L" aMule aMule.info Install-aMule Install-aMule.info >/dev/null)
     else L="$OUT/aMule-$VER.tar"; (cd "$PK" && tar cf "$L" aMule aMule.info Install-aMule Install-aMule.info); fi
     ls -l "$L"
+    # the package unpacked too, for a lab without an LhA
+    rm -rf "$OUT/package"; cp -a "$PK" "$OUT/package"
 fi
-# lab aids, never packaged: a server list and Kad nodes, as aMule would
-# download them itself once it has HTTP (wxWebRequest)
+# lab aids, never packaged: a server list and Kad nodes, for a lab with
+# no way out (aMule downloads them itself through wxWebRequest)
 mkdir -p "$OUT/lab"
 for f in server.met nodes.dat; do
     curl -sSfL -m 30 -o "$OUT/lab/$f" "$LAB_LISTS/$f" 2>/dev/null && ls -l "$OUT/lab/$f" || { rm -f "$OUT/lab/$f"; echo "lab $f: not fetched"; }

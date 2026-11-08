@@ -12,12 +12,13 @@ CRYPTOPP_COMMIT=843d74c7c97f9e19a615b8ff3c0ca06599ca501b
 GFOPENBOOST_VERSION=1.89.0
 GFOPENBOOST_URL=https://github.com/DalsinAI/gfopenboost/releases/download/v1.89.0-rc2/gfopenboost-1.89.0-sdk.tar.xz
 GFOPENBOOST_SHA256=b00ac87dbb84899593c5f74e45ddd38f6706a10964435517c1a04fd265286c5f
-# The toolkit: GFOpenWX Toolkit 0.1.0 RC8's SDK (main 82ade89); without
-# the SDK the toolkit is built from WXT_COMMIT
+# The toolkit: GFOpenWX Toolkit at the commit with wxWebRequest on libcurl
+# (gfopenwxtoolkit #23), built from source until a release has it; an
+# SDK release goes in WXT_SDK_URL and WXT_SDK_SHA256 again then
 WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
-WXT_COMMIT=82ade896d5e9e564830add94f87724ccddddab6c
-WXT_SDK_URL=https://github.com/DalsinAI/gfopenwxtoolkit/releases/download/v0.1.0-rc8/GFOpenWXToolkit-0.1.0-RC8-sdk.tar.gz
-WXT_SDK_SHA256=1105f569f906006d5c3fcb746aedae168606fd6f9ef3c3b13b339f7bd6966a9f
+WXT_COMMIT=80cd7f227bc392931f8a1eb555a3021156476f1d
+WXT_SDK_URL=
+WXT_SDK_SHA256=
 # event.library (GFOpenEvent 1.1 RC2), which GFOpenBoost's Asio reactor
 # opens: the package carries it and Install-aMule puts it in LIBS:
 GFOPENEVENT_URL=https://github.com/DalsinAI/gfopenevent/releases/download/v1.1-rc2/GFOpenEvent-1.1-rc2.zip
@@ -25,3 +26,7 @@ GFOPENEVENT_SHA256=3bbb04429ecc850982b6cbcaf9ba629a06d914b6b951d6b69cd66c33c36c8
 # Lab only: where the build fetches server.met and nodes.dat for the
 # connect test (nothing of it is packaged)
 LAB_LISTS=http://upd.emule-security.org
+# regex.library (GFOpenRegex 1.0 RC1), the toolkit's wxRegEx engine:
+# the package carries it and Install-aMule puts it in LIBS:
+GFOPENREGEX_URL=https://github.com/DalsinAI/gfopenregex/releases/download/v1.0-rc1/GFOpenRegex-1.0-rc1.zip
+GFOPENREGEX_SHA256=d596e9135be7407bd2f5baf7f6798da2e873125e120793ce190c0d4455ddb808
