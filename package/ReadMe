@@ -9,7 +9,8 @@ Installing
 ----------
 Unpack the archive anywhere and double-click Install-aMule. It checks the
 CPU, asks where the aMule drawer should go (Work: by default), copies it,
-and puts event.library in LIBS: unless a newer one is already there.
+and puts event.library and regex.library in LIBS: unless newer ones are
+already there.
 
 Starting
 --------
@@ -30,7 +31,8 @@ Not yet
 Needs
 -----
 - AmigaOS 3.2, a 68040 or later, a TCP/IP stack (bsdsocket.library).
-- event.library 1.1 (included).
+- event.library 1.1 and regex.library 1.0 (included).
+- gfopentls.library in LIBS: for HTTPS.
 
 aMule is free software under the GNU General Public License, version 2
 or later; its source is at https://github.com/amule-project/amule. The

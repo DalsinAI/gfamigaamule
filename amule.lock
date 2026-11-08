@@ -26,3 +26,7 @@ GFOPENEVENT_SHA256=3bbb04429ecc850982b6cbcaf9ba629a06d914b6b951d6b69cd66c33c36c8
 # Lab only: where the build fetches server.met and nodes.dat for the
 # connect test (nothing of it is packaged)
 LAB_LISTS=http://upd.emule-security.org
+# regex.library (GFOpenRegex 1.0 RC1), the toolkit's wxRegEx engine:
+# the package carries it and Install-aMule puts it in LIBS:
+GFOPENREGEX_URL=https://github.com/DalsinAI/gfopenregex/releases/download/v1.0-rc1/GFOpenRegex-1.0-rc1.zip
+GFOPENREGEX_SHA256=d596e9135be7407bd2f5baf7f6798da2e873125e120793ce190c0d4455ddb808

@@ -7,7 +7,7 @@
   "fpu": false,
   "space": 20000000,
   "modules": [],
-  "libraries": ["event.library"],
+  "libraries": ["event.library", "regex.library"],
   "keep": [],
   "parent": "Work:",
   "badge": "art/amule.png"

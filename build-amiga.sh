@@ -90,7 +90,7 @@ left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WX_SDK" BUDGET=$left \
     sh "$HERE/scripts/build-amule.sh"
 
-# ---- the package: the aMule drawer with event.library, its GlowIcons and
+# ---- the package: the aMule drawer with event.library and regex.library, its GlowIcons and
 # Install-aMule (package/: made by amicradle's scripts/port_icons.py and
 # port_installer.py from package/icons.json and package/installer.json)
 if [ -f "$OUT/amule" ]; then
@@ -98,9 +98,16 @@ if [ -f "$OUT/amule" ]; then
     E="$WORK/deps/gfopenevent-$(echo "$GFOPENEVENT_SHA256" | cut -c1-16).zip"
     [ -f "$E" ] || curl -sSfL -o "$E" "$GFOPENEVENT_URL" || { echo "event.library download failed"; exit 1; }
     echo "$GFOPENEVENT_SHA256  $E" | sha256sum -c - >/dev/null || { echo "event.library archive checksum differs"; exit 1; }
+    # regex.library (GFOpenRegex): the toolkit's wxRegEx, which aMule's
+    # version check uses
+    X="$WORK/deps/gfopenregex-$(echo "$GFOPENREGEX_SHA256" | cut -c1-16).zip"
+    [ -f "$X" ] || curl -sSfL -o "$X" "$GFOPENREGEX_URL" || { echo "regex.library download failed"; exit 1; }
+    echo "$GFOPENREGEX_SHA256  $X" | sha256sum -c - >/dev/null || { echo "regex.library archive checksum differs"; exit 1; }
     PK="$WORK/pkg"; rm -rf "$PK"; mkdir -p "$PK/aMule/Libs"
     python3 -c 'import sys,zipfile; open(sys.argv[2],"wb").write(zipfile.ZipFile(sys.argv[1]).read("GFOpenEvent/Libs/event.library"))' \
         "$E" "$PK/aMule/Libs/event.library"
+    python3 -c 'import sys,zipfile; open(sys.argv[2],"wb").write(zipfile.ZipFile(sys.argv[1]).read("GFOpenRegex/Libs/regex.library"))' \
+        "$X" "$PK/aMule/Libs/regex.library"
     cp "$OUT/amule" "$PK/aMule/aMule"
     cp "$HERE/package/icons/aMule.info" "$PK/aMule/aMule.info"
     cp "$HERE/package/icons/aMule-drawer.info" "$PK/aMule.info"
