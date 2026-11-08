@@ -118,6 +118,8 @@ if [ -f "$OUT/amule" ]; then
     elif command -v jlha >/dev/null 2>&1; then (cd "$PK" && jlha -aq "$L" aMule aMule.info Install-aMule Install-aMule.info >/dev/null)
     else L="$OUT/aMule-$VER.tar"; (cd "$PK" && tar cf "$L" aMule aMule.info Install-aMule Install-aMule.info); fi
     ls -l "$L"
+    # the package unpacked too, for a lab without an LhA
+    rm -rf "$OUT/package"; cp -a "$PK" "$OUT/package"
 fi
 # lab aids, never packaged: a server list and Kad nodes, for a lab with
 # no way out (aMule downloads them itself through wxWebRequest)
