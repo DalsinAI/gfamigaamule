@@ -28,3 +28,7 @@ aMule is GPL v2 or later; the patches and build files here are under the same li
 
 Designed, tested and delivered by The AmiCradle Team.
 Copyright (c) 2026 AmiCradle Team
+
+## Package
+
+The build also makes `aMule-<version>.lha`: the `aMule` drawer (aMule, its ReadMe and `Libs/event.library` from GFOpenEvent 1.1 RC2) with its icon, and `Install-aMule`. Unpack it anywhere and double-click `Install-aMule`: it checks for a 68040 or later, asks where to put the drawer (Work: by default), copies it, and puts event.library in LIBS: unless a newer one is there. `package/` holds the Installer and icon specs; the files in `package/installer` and `package/icons` are made from them by amicradle's `scripts/port_installer.py` and `scripts/port_icons.py`.

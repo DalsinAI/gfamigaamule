@@ -1,0 +1,14 @@
+{
+  "name": "aMule",
+  "version": "3.0.0-amiga.1",
+  "drawer": "aMule",
+  "program": "aMule",
+  "cpu": "68040",
+  "fpu": false,
+  "space": 20000000,
+  "modules": [],
+  "libraries": ["event.library"],
+  "keep": [],
+  "parent": "Work:",
+  "badge": "art/amule.png"
+}

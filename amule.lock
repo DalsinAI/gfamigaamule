@@ -18,3 +18,7 @@ WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
 WXT_COMMIT=82ade896d5e9e564830add94f87724ccddddab6c
 WXT_SDK_URL=https://github.com/DalsinAI/gfopenwxtoolkit/releases/download/v0.1.0-rc8/GFOpenWXToolkit-0.1.0-RC8-sdk.tar.gz
 WXT_SDK_SHA256=1105f569f906006d5c3fcb746aedae168606fd6f9ef3c3b13b339f7bd6966a9f
+# event.library (GFOpenEvent 1.1 RC2), which GFOpenBoost's Asio reactor
+# opens: the package carries it and Install-aMule puts it in LIBS:
+GFOPENEVENT_URL=https://github.com/DalsinAI/gfopenevent/releases/download/v1.1-rc2/GFOpenEvent-1.1-rc2.zip
+GFOPENEVENT_SHA256=3bbb04429ecc850982b6cbcaf9ba629a06d914b6b951d6b69cd66c33c36c8ca7

@@ -89,4 +89,27 @@ left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 [ "$left" -gt 60 ] || { echo "no time left for aMule this run"; exit 0; }
 TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WX_SDK" BUDGET=$left \
     sh "$HERE/scripts/build-amule.sh"
+
+# ---- the package: the aMule drawer with event.library, its GlowIcons and
+# Install-aMule (package/: made by amicradle's scripts/port_icons.py and
+# port_installer.py from package/icons.json and package/installer.json)
+if [ -f "$OUT/amule" ]; then
+    VER=$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$HERE/package/installer.json")
+    E="$WORK/deps/gfopenevent-$(echo "$GFOPENEVENT_SHA256" | cut -c1-16).zip"
+    [ -f "$E" ] || curl -sSfL -o "$E" "$GFOPENEVENT_URL" || { echo "event.library download failed"; exit 1; }
+    echo "$GFOPENEVENT_SHA256  $E" | sha256sum -c - >/dev/null || { echo "event.library archive checksum differs"; exit 1; }
+    PK="$WORK/pkg"; rm -rf "$PK"; mkdir -p "$PK/aMule/Libs"
+    python3 -c 'import sys,zipfile; open(sys.argv[2],"wb").write(zipfile.ZipFile(sys.argv[1]).read("GFOpenEvent/Libs/event.library"))' \
+        "$E" "$PK/aMule/Libs/event.library"
+    cp "$OUT/amule" "$PK/aMule/aMule"
+    cp "$HERE/package/icons/aMule.info" "$PK/aMule/aMule.info"
+    cp "$HERE/package/icons/aMule-drawer.info" "$PK/aMule.info"
+    cp "$HERE/package/ReadMe" "$PK/aMule/ReadMe"; cp "$HERE/package/icons/ReadMe.info" "$PK/aMule/ReadMe.info"
+    cp "$HERE/package/installer/Install-aMule" "$HERE/package/installer/Install-aMule.info" "$PK/"
+    L="$OUT/aMule-$VER.lha"; rm -f "$L"
+    if command -v lha >/dev/null 2>&1; then (cd "$PK" && lha -aq "$L" aMule aMule.info Install-aMule Install-aMule.info >/dev/null)
+    elif command -v jlha >/dev/null 2>&1; then (cd "$PK" && jlha -aq "$L" aMule aMule.info Install-aMule Install-aMule.info >/dev/null)
+    else L="$OUT/aMule-$VER.tar"; (cd "$PK" && tar cf "$L" aMule aMule.info Install-aMule Install-aMule.info); fi
+    ls -l "$L"
+fi
 echo "total: $(( $(date +%s) - t0 )) s"

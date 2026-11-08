@@ -1,0 +1,40 @@
+aMule 3.0.0 for the Amiga (3.0.0-amiga.1)
+=========================================
+
+aMule is an eD2k and Kad file sharing client. This is aMule 3.0.0 (the
+GUI program) for AmigaOS 3.2 on a 68040, 68060 or 68080, built on the
+GFOpenWX Toolkit and GFOpenBoost.
+
+Installing
+----------
+Unpack the archive anywhere and double-click Install-aMule. It checks the
+CPU, asks where the aMule drawer should go (Work: by default), copies it,
+and puts event.library in LIBS: unless a newer one is already there.
+
+Starting
+--------
+Open the aMule drawer and double-click aMule. Settings, downloads and
+shared files are kept in ENVARC:.aMule.
+
+What works
+----------
+- The program starts, opens its sockets and loads its IP filter.
+- The Downloads, Searches, Shared files and Statistics pages.
+
+Not yet
+-------
+- HTTP downloads (server lists, nodes.dat, the version check). Until
+  they come, add a server by hand on the Networks page, or put a
+  server.met in ENVARC:.aMule.
+- No tray icon, notifications or folder watching.
+
+Needs
+-----
+- AmigaOS 3.2, a 68040 or later, a TCP/IP stack (bsdsocket.library).
+- event.library 1.1 (included).
+
+aMule is free software under the GNU General Public License, version 2
+or later; its source is at https://github.com/amule-project/amule. The
+Amiga port's build is at https://github.com/DalsinAI/gfamigaamule.
+
+Designed, tested and delivered by The AmiCradle Team.

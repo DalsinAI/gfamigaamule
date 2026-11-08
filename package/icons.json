@@ -1,0 +1,20 @@
+{
+  "drawer": {
+    "name": "aMule",
+    "width": 200,
+    "height": 100,
+    "file": "aMule-drawer.info"
+  },
+  "badge": "art/amule.png",
+  "icons": [
+    {
+      "file": "aMule.info",
+      "kind": "tool",
+      "stack": 1048576
+    },
+    {
+      "file": "ReadMe.info",
+      "kind": "readme"
+    }
+  ]
+}
