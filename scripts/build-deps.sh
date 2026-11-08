@@ -34,7 +34,7 @@ fi
 
 # Boost: the shared GFOpenBoost SDK, as it comes
 if [ "$(cat "$SYS/include/.gfopenboost" 2>/dev/null)" != "$GFOPENBOOST_SHA256" ]; then
-    T="$WORK/deps/gfopenboost-$GFOPENBOOST_VERSION-sdk.tar.xz"
+    T="$WORK/deps/gfopenboost-$GFOPENBOOST_VERSION-$(echo "$GFOPENBOOST_SHA256" | cut -c1-16)-sdk.tar.xz"
     [ -f "$T" ] || curl -sSfL -o "$T" "$GFOPENBOOST_URL"
     echo "$GFOPENBOOST_SHA256  $T" | sha256sum -c - >/dev/null
     G="$WORK/deps/gfopenboost-$GFOPENBOOST_VERSION"

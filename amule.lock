@@ -6,17 +6,15 @@ AMULE_COMMIT=1791d2b8d3b60d16c9d2f32a9eadf456683c26cf
 CRYPTOPP_GIT=https://github.com/weidai11/cryptopp.git
 CRYPTOPP_TAG=CRYPTOPP_8_9_0
 CRYPTOPP_COMMIT=843d74c7c97f9e19a615b8ff3c0ca06599ca501b
-# Boost: only its headers (Asio, and what Asio includes)
 # Boost: the project's shared GFOpenBoost SDK (headers with the Amiga
-# config, libboost_asio.a with Asio's separate compilation)
+# config; libboost_asio.a with Asio's separate compilation and its reactor
+# on event.library)
 GFOPENBOOST_VERSION=1.89.0
-GFOPENBOOST_URL=https://github.com/DalsinAI/gfopenboost/releases/download/v1.89.0-rc1/gfopenboost-1.89.0-sdk.tar.xz
-GFOPENBOOST_SHA256=a6cad796bc9f7ac84e81704bef6553f63588255eb7012512d0359654507be52a
-# Our own pieces, fetched at these commits (the toolkit with wxNet: branch team3/wxnet-sockets)
+GFOPENBOOST_URL=https://github.com/DalsinAI/gfopenboost/releases/download/v1.89.0-rc2/gfopenboost-1.89.0-sdk.tar.xz
+GFOPENBOOST_SHA256=b00ac87dbb84899593c5f74e45ddd38f6706a10964435517c1a04fd265286c5f
+# The toolkit: GFOpenWX Toolkit 0.1.0 RC8's SDK (main 82ade89); without
+# the SDK the toolkit is built from WXT_COMMIT
 WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
-WXT_COMMIT=9ee45236c4ef2d9e5499ef9af9cd1ab5c2c09d56
-# Lab: the wx ports' combined SDK (toolkit main + PRs #6, #7 and the 6 Nov
-# branches), used as is when this file is on the build host; otherwise the
-# toolkit is built from WXT_COMMIT
-WXT_SDK_TAR=/run/media/da1ek/WorkingSpace/AmigaChrome/archive/daletop-offload-20261023/AmigaChrome-dev/cradle-builds/jobs/j20261106T134404-c36718/out/gfopenwx-sdk.tar.gz
-WXT_SDK_SHA256=68948c6f6941a69335c3116bd5efb490fbd2523c56991586ce9e742585cc68c9
+WXT_COMMIT=82ade896d5e9e564830add94f87724ccddddab6c
+WXT_SDK_URL=https://github.com/DalsinAI/gfopenwxtoolkit/releases/download/v0.1.0-rc8/GFOpenWXToolkit-0.1.0-RC8-sdk.tar.gz
+WXT_SDK_SHA256=1105f569f906006d5c3fcb746aedae168606fd6f9ef3c3b13b339f7bd6966a9f
