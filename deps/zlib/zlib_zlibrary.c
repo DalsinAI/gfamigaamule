@@ -1,7 +1,19 @@
 /*
- * zlib's calls on the system's z.library (GFOpenZlib's jump table, the
- * Aminet z.library's calls): one LVO each, the stream in A0 and the other
- * arguments in D0 upwards. The init calls take no version or stream size.
+ * zlib's calls on the system's z.library: one LVO each, the stream in A0
+ * and the other arguments as the library's table says. The init calls
+ * take no version or stream size.
+ *
+ * Two tables. From 53.13 on, GFOpenZlib (amicradle-guest
+ * libraries/openzlib) has the Aminet z.library's table (z.lvo), and so do
+ * other z.libraries: InflateInit2 -102, InflateSetDictionary -108,
+ * Adler32 -132, Crc32 -138, DeflateBound -156. GFOpenZlib before 53.13
+ * (53.12 is on the instances) had a table of its own: DeflateBound -108,
+ * InflateInit2 -132, Adler32 -228 and so on. This file used only that old
+ * table, so on 53.13 inflateInit2 landed on Adler32 and deflateBound on
+ * InflateSetDictionary, and every gz/zip read and write broke. Now
+ * z_old() says which table the opened library has, as the GFOpenWX
+ * Toolkit's wxzlib_zlibrary.c does.
+ *
  * The library is opened on first use; without it every call fails cleanly
  * (Z_VERSION_ERROR), so aMule reports the error instead of crashing.
  * gzopen/gzread/gzclose/gzerror read a gzip file through inflate.
@@ -18,12 +30,26 @@
 #include "zlib.h"
 
 static struct Library *ZBase;
+static int ZOld;    /* GFOpenZlib before 53.13: its own old table */
 
 static int zopen(void)
 {
-    if (!ZBase)
-        ZBase = OpenLibrary((CONST_STRPTR)"z.library", 53);
+    if (!ZBase) {
+        ZBase = OpenLibrary((CONST_STRPTR)"z.library", 0);
+        if (ZBase) {
+            const char *id = (const char *)ZBase->lib_IdString;
+            int gf = id && strstr(id, "GFOpenZlib") != NULL;
+            ZOld = gf && (ZBase->lib_Version < 53 ||
+                          (ZBase->lib_Version == 53 && ZBase->lib_Revision < 13));
+        }
+    }
     return ZBase != NULL;
+}
+
+/* the opened library has GFOpenZlib's table from before 53.13 */
+static int z_old(void)
+{
+    return ZOld;
 }
 
 static void zclose(void) __attribute__((destructor));
@@ -39,11 +65,13 @@ static void zclose(void)
 
 const char *zlibVersion(void)
 {
-    if (!zopen())
+    /* only the old table has ZlibVersion (-30) */
+    if (!zopen() || !z_old())
         return ZLIB_VERSION;
     return LP0(0x1e, const char *, ZlibVersion, ZB, ZBase);
 }
 
+/* the calls at the same place in both tables */
 int deflateInit(z_streamp s, int level)
 {
     if (!zopen()) return Z_VERSION_ERROR;
@@ -93,61 +121,83 @@ int deflateReset(z_streamp s)
     return LP1(0x5a, LONG, DeflateReset, z_streamp, s, a0, ZB, ZBase);
 }
 
+/* the calls that moved: new table (z.lvo) first, then the old one */
 uLong deflateBound(z_streamp s, uLong sourceLen)
 {
     if (!zopen()) return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + (sourceLen >> 25) + 13;
-    return LP2(0x6c, ULONG, DeflateBound, z_streamp, s, a0, ULONG, sourceLen, d0, ZB, ZBase);
+    if (z_old())
+        return LP2(0x6c, ULONG, DeflateBound, z_streamp, s, a0, ULONG, sourceLen, d0, ZB, ZBase);
+    return LP2(0x9c, ULONG, DeflateBound, z_streamp, s, a0, ULONG, sourceLen, d0, ZB, ZBase);
 }
 
 int inflateInit2(z_streamp s, int windowBits)
 {
     if (!zopen()) return Z_VERSION_ERROR;
-    return LP2(0x84, LONG, InflateInit2, z_streamp, s, a0, LONG, windowBits, d0, ZB, ZBase);
+    if (z_old())
+        return LP2(0x84, LONG, InflateInit2, z_streamp, s, a0, LONG, windowBits, d0, ZB, ZBase);
+    return LP2(0x66, LONG, InflateInit2, z_streamp, s, a0, LONG, windowBits, d0, ZB, ZBase);
 }
 
 int inflateReset(z_streamp s)
 {
     if (!zopen()) return Z_STREAM_ERROR;
-    return LP1(0xa2, LONG, InflateReset, z_streamp, s, a0, ZB, ZBase);
+    if (z_old())
+        return LP1(0xa2, LONG, InflateReset, z_streamp, s, a0, ZB, ZBase);
+    return LP1(0x72, LONG, InflateReset, z_streamp, s, a0, ZB, ZBase);
 }
 
 int compress(Bytef *dest, uLongf *destLen, const Bytef *source, uLong sourceLen)
 {
     if (!zopen()) return Z_VERSION_ERROR;
-    return LP4(0xc6, LONG, Compress, Bytef *, dest, a0, uLongf *, destLen, a1,
+    if (z_old())
+        return LP4(0xc6, LONG, Compress, Bytef *, dest, a0, uLongf *, destLen, a1,
+                   const Bytef *, source, a2, ULONG, sourceLen, d0, ZB, ZBase);
+    return LP4(0x78, LONG, Compress, Bytef *, dest, a0, uLongf *, destLen, a1,
                const Bytef *, source, a2, ULONG, sourceLen, d0, ZB, ZBase);
 }
 
 int compress2(Bytef *dest, uLongf *destLen, const Bytef *source, uLong sourceLen, int level)
 {
     if (!zopen()) return Z_VERSION_ERROR;
-    return LP5(0xcc, LONG, Compress2, Bytef *, dest, a0, uLongf *, destLen, a1,
+    if (z_old())
+        return LP5(0xcc, LONG, Compress2, Bytef *, dest, a0, uLongf *, destLen, a1,
+                   const Bytef *, source, a2, ULONG, sourceLen, d0, LONG, level, d1, ZB, ZBase);
+    return LP5(0xde, LONG, Compress2, Bytef *, dest, a0, uLongf *, destLen, a1,
                const Bytef *, source, a2, ULONG, sourceLen, d0, LONG, level, d1, ZB, ZBase);
 }
 
 uLong compressBound(uLong sourceLen)
 {
     if (!zopen()) return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + (sourceLen >> 25) + 13;
-    return LP1(0xd2, ULONG, CompressBound, ULONG, sourceLen, d0, ZB, ZBase);
+    if (z_old())
+        return LP1(0xd2, ULONG, CompressBound, ULONG, sourceLen, d0, ZB, ZBase);
+    return LP1(0xe4, ULONG, CompressBound, ULONG, sourceLen, d0, ZB, ZBase);
 }
 
 int uncompress(Bytef *dest, uLongf *destLen, const Bytef *source, uLong sourceLen)
 {
     if (!zopen()) return Z_VERSION_ERROR;
-    return LP4(0xd8, LONG, Uncompress, Bytef *, dest, a0, uLongf *, destLen, a1,
+    if (z_old())
+        return LP4(0xd8, LONG, Uncompress, Bytef *, dest, a0, uLongf *, destLen, a1,
+                   const Bytef *, source, a2, ULONG, sourceLen, d0, ZB, ZBase);
+    return LP4(0x7e, LONG, Uncompress, Bytef *, dest, a0, uLongf *, destLen, a1,
                const Bytef *, source, a2, ULONG, sourceLen, d0, ZB, ZBase);
 }
 
 uLong adler32(uLong adler, const Bytef *buf, uInt len)
 {
     if (!zopen()) return 1;
-    return LP3(0xe4, ULONG, Adler32, ULONG, adler, d0, const Bytef *, buf, a0, ULONG, len, d1, ZB, ZBase);
+    if (z_old())
+        return LP3(0xe4, ULONG, Adler32, ULONG, adler, d0, const Bytef *, buf, a0, ULONG, len, d1, ZB, ZBase);
+    return LP3(0x84, ULONG, Adler32, ULONG, adler, d0, const Bytef *, buf, a0, ULONG, len, d1, ZB, ZBase);
 }
 
 uLong crc32(uLong crc, const Bytef *buf, uInt len)
 {
     if (!zopen()) return 0;
-    return LP3(0xea, ULONG, Crc32, ULONG, crc, d0, const Bytef *, buf, a0, ULONG, len, d1, ZB, ZBase);
+    if (z_old())
+        return LP3(0xea, ULONG, Crc32, ULONG, crc, d0, const Bytef *, buf, a0, ULONG, len, d1, ZB, ZBase);
+    return LP3(0x8a, ULONG, Crc32, ULONG, crc, d0, const Bytef *, buf, a0, ULONG, len, d1, ZB, ZBase);
 }
 
 /* ---- reading a gzip file ---- */
