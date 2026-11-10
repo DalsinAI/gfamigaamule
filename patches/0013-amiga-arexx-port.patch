@@ -1,14 +1,15 @@
 # AmigaOS: the ARexx port AMULE.1: ADDLINK, CONNECT, DISCONNECT, STATUS.
 --- a/src/amule-gui.cpp	2026-11-07 14:00:20.975791163 +0000
 +++ b/src/amule-gui.cpp	2026-11-07 14:00:44.852747060 +0000
-@@ -273,8 +273,81 @@
+@@ -273,8 +273,93 @@
  }
  
  
 +#ifdef __AMIGA__
 +// AmigaOS: aMule's ARexx port, AMULE.1, on the GFOpenWX Toolkit's
-+// wxARexxPort and arexx.class, with the toolkit's QUIT, ACTIVATE,
-+// DEACTIVATE, VERSION, HELP and FAULT:
++// wxARexxPort and arexx.class, with the toolkit's ACTIVATE, DEACTIVATE,
++// VERSION, HELP and FAULT:
++//   QUIT FORCE/S     close aMule, with no exit requester
 +//   ADDLINK LINK/A   an ed2k:// or magnet link to download
 +//   CONNECT          connect, as the Connect button (ED2K and Kad, as the
 +//                    preferences have them)
@@ -64,6 +65,17 @@
 +		c.SetResult(wxString::Format(wxT("%d %d"), theApp->IsConnectedED2K() ? 1 : 0,
 +					     theApp->IsConnectedKad() ? 1 : 0));
 +	});
++	// QUIT of its own: the toolkit's plain QUIT closes the window as its
++	// close gadget does, which asks "Do you really want to exit?" when the
++	// preferences say so. aMule has nothing unsaved (downloads go on next
++	// time), so QUIT and QUIT FORCE both close it with no requester.
++	s_amigaRexx->Add(wxT("QUIT"), wxT("FORCE/S"), [](wxARexxCommand &c) {
++		if (!theApp->amuledlg || theApp->IsOnShutDown()) {
++			c.SetError(20);
++			return;
++		}
++		theApp->amuledlg->Close(true);
++	});
 +	s_amigaRexx->Open();
 +}
 +
@@ -83,7 +95,7 @@
  	delete core_timer;
  
  	return CamuleApp::OnExit();
-@@ -371,6 +444,10 @@
+@@ -371,6 +456,10 @@
  	core_timer->Start(CORE_TIMER_PERIOD);
  	amuledlg->StartGuiTimer();
  

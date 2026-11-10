@@ -24,7 +24,7 @@ The first build is the monolithic `amule` (window app). The daemon, remote GUI, 
 
 ## ARexx
 
-aMule has an ARexx port, `AMULE.1`, from the GFOpenWX Toolkit's `wxARexxPort` on arexx.class (patch 0010).
+aMule has an ARexx port, `AMULE.1`, from the GFOpenWX Toolkit's `wxARexxPort` on arexx.class (patch 0013).
 
 | Command | Does |
 | --- | --- |
@@ -32,7 +32,8 @@ aMule has an ARexx port, `AMULE.1`, from the GFOpenWX Toolkit's `wxARexxPort` on
 | `CONNECT` | connect, as the Connect button (ED2K and Kad, as the preferences have them) |
 | `DISCONNECT` | disconnect, or stop trying; Kad too |
 | `STATUS` | RESULT: `ED2K KAD`, each 1 when connected, else 0 |
-| `QUIT`, `ACTIVATE`, `DEACTIVATE`, `VERSION`, `HELP`, `FAULT` | the toolkit's standard commands |
+| `QUIT FORCE/S` | close aMule with no "Do you really want to exit?" requester (FORCE changes nothing: aMule has nothing unsaved) |
+| `ACTIVATE`, `DEACTIVATE`, `VERSION`, `HELP`, `FAULT` | the toolkit's standard commands |
 
 ```
 /* aMule: connect and fetch a file */
