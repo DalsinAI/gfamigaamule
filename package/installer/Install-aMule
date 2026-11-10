@@ -1,10 +1,10 @@
-; $VER: Install-aMule 3.0.0-amiga.1 (8.11.2026)
+; $VER: Install-aMule 3.0.0-amiga.2 (10.11.2026)
 ; The Amiga Installer script for aMule, an AmiCradle game port.
 ; Made by amicradle scripts/port_installer.py: change the spec, not this file.
 ; Run it from its icon, beside the aMule drawer where the archive was unpacked.
 
 (set @app-name "aMule")
-(set #version "3.0.0-amiga.1")
+(set #version "3.0.0-amiga.2")
 (set #drawer "aMule")
 (set #program "aMule")
 (set #space 19532)  ; KB
@@ -32,7 +32,7 @@
 (if (<> (exists (tackon #from "Libs/regex.library") (noreq)) 1)
     (abort "The aMule drawer has no Libs/regex.library in it. Unpack the whole archive again."))
 
-(welcome "This installs aMule 3.0.0-amiga.1 for AmigaOS 3.2 on a 68040, 68060 or 68080.")
+(welcome "This installs aMule 3.0.0-amiga.2 for AmigaOS 3.2 on a 68040, 68060 or 68080.")
 
 ; where: the parent drawer
 (set #default
@@ -94,7 +94,7 @@
 (complete 100)
 (if @pretend
     (message (cat "Pretend: nothing was copied or changed. aMule would have gone in " #dest "."))
-    (message (cat "aMule 3.0.0-amiga.1 is installed in " #dest "."
+    (message (cat "aMule 3.0.0-amiga.2 is installed in " #dest "."
                   "\n\nTo start it, open the aMule drawer and double-click the aMule icon."
                   (if (= #kept "") "" (cat "\n\nLeft as they were: " #kept ".")))))
 (exit (quiet))
