@@ -21,7 +21,14 @@ if [ "$(cat "$SYS/lib/.zlib" 2>/dev/null)" != "$ZS" ]; then
     echo "$ZS" > "$SYS/lib/.zlib"
 fi
 
-# compat calls libnix lacks or gets wrong (deps/compat): poll() on select(), POSIX ioctl()/fcntl() for sockets
+# POSIX ioctl()/fcntl() for sockets come from the stove's libsocket (GFOpenAmigaGCC
+# patches/libnix/0010, in the os32-gcc16-open6 stove since 10 Nov 2026). An older
+# libsocket takes ixemul's five-argument ioctl(), which breaks Boost.Asio's
+# non-blocking sockets, so stop here rather than link against it.
+m68k-amigaos-nm "$TOOLCHAIN/m68k-amigaos/libnix/lib/libsocket.a" 2>/dev/null | grep -q ' T _fcntl$' \
+    || { echo "the stove's libsocket has no POSIX ioctl()/fcntl() (GFOpenAmigaGCC libnix patch 0010): refresh the stove"; exit 1; }
+
+# compat calls libnix lacks (deps/compat): poll() on select(), and a few more
 CS=$( (cat "$HERE"/deps/compat/* "$HERE"/cmake/amiga-include/sys/poll.h "$HERE"/cmake/amiga-include/amigaamule_posix.h; echo "$TOOLCHAIN") | sha256sum | cut -c1-16)
 if [ "$(cat "$SYS/lib/.compat" 2>/dev/null)" != "$CS" ]; then
     rm -f "$SYS/lib/libamigacompat.a"
