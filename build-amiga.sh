@@ -119,6 +119,9 @@ if [ -f "$OUT/amule" ]; then
     cp "$HERE/package/icons/aMule.info" "$PK/aMule/aMule.info"
     cp "$HERE/package/icons/aMule-drawer.info" "$PK/aMule.info"
     cp "$HERE/package/ReadMe" "$PK/aMule/ReadMe"; cp "$HERE/package/icons/ReadMe.info" "$PK/aMule/ReadMe.info"
+    # the ARexx example and the port test, in the drawer beside the program
+    mkdir -p "$PK/aMule/Rexx" "$PK/aMule/tests"
+    cp "$HERE"/Rexx/*.rexx "$PK/aMule/Rexx/"; cp "$HERE/tests/arexx.rexx" "$PK/aMule/tests/"
     cp "$HERE/package/installer/Install-aMule" "$HERE/package/installer/Install-aMule.info" "$PK/"
     L="$OUT/aMule-$VER.lha"; rm -f "$L"
     if command -v lha >/dev/null 2>&1; then (cd "$PK" && lha -aq "$L" aMule aMule.info Install-aMule Install-aMule.info >/dev/null)
