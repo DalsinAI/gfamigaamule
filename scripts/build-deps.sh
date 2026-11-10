@@ -21,7 +21,7 @@ if [ "$(cat "$SYS/lib/.zlib" 2>/dev/null)" != "$ZS" ]; then
     echo "$ZS" > "$SYS/lib/.zlib"
 fi
 
-# compat calls libnix lacks (deps/compat): poll() on select()
+# compat calls libnix lacks or gets wrong (deps/compat): poll() on select(), POSIX ioctl()/fcntl() for sockets
 CS=$( (cat "$HERE"/deps/compat/* "$HERE"/cmake/amiga-include/sys/poll.h "$HERE"/cmake/amiga-include/amigaamule_posix.h; echo "$TOOLCHAIN") | sha256sum | cut -c1-16)
 if [ "$(cat "$SYS/lib/.compat" 2>/dev/null)" != "$CS" ]; then
     rm -f "$SYS/lib/libamigacompat.a"

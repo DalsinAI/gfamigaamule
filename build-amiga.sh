@@ -87,6 +87,13 @@ if "$TC/bin/m68k-amigaos-gcc" -noixemul -m68040 -O2 -specs="$HERE/scripts/m68k-s
 fi
 left=$(( ${BUDGET_TOTAL:-840} - ($(date +%s) - t0) ))
 [ "$left" -gt 60 ] || { echo "no time left for aMule this run"; exit 0; }
+# objects made against another toolkit commit go (ARexx rule 7): its
+# headers are not in the make rules, and stale objects crash at start
+# (gfamigagolly #3)
+if [ "$(cat "$WORK/.toolkit-objs" 2>/dev/null)" != "$WXT_COMMIT" ]; then
+    rm -rf "$WORK/abuild"
+    echo "$WXT_COMMIT" > "$WORK/.toolkit-objs"
+fi
 TOOLCHAIN="$TC" WORK="$WORK" OUT="$OUT" JOBS=$JOBS WX_SDK="$WX_SDK" BUDGET=$left \
     sh "$HERE/scripts/build-amule.sh"
 
@@ -112,6 +119,9 @@ if [ -f "$OUT/amule" ]; then
     cp "$HERE/package/icons/aMule.info" "$PK/aMule/aMule.info"
     cp "$HERE/package/icons/aMule-drawer.info" "$PK/aMule.info"
     cp "$HERE/package/ReadMe" "$PK/aMule/ReadMe"; cp "$HERE/package/icons/ReadMe.info" "$PK/aMule/ReadMe.info"
+    # the ARexx example and the port test, in the drawer beside the program
+    mkdir -p "$PK/aMule/Rexx" "$PK/aMule/tests"
+    cp "$HERE"/Rexx/*.rexx "$PK/aMule/Rexx/"; cp "$HERE/tests/arexx.rexx" "$PK/aMule/tests/"
     cp "$HERE/package/installer/Install-aMule" "$HERE/package/installer/Install-aMule.info" "$PK/"
     L="$OUT/aMule-$VER.lha"; rm -f "$L"
     if command -v lha >/dev/null 2>&1; then (cd "$PK" && lha -aq "$L" aMule aMule.info Install-aMule Install-aMule.info >/dev/null)

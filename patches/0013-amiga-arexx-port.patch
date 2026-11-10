@@ -1,0 +1,108 @@
+# AmigaOS: the ARexx port AMULE.1: ADDLINK, CONNECT, DISCONNECT, STATUS.
+--- a/src/amule-gui.cpp	2026-11-07 14:00:20.975791163 +0000
++++ b/src/amule-gui.cpp	2026-11-07 14:00:44.852747060 +0000
+@@ -273,8 +273,93 @@
+ }
+ 
+ 
++#ifdef __AMIGA__
++// AmigaOS: aMule's ARexx port, AMULE.1, on the GFOpenWX Toolkit's
++// wxARexxPort and arexx.class, with the toolkit's ACTIVATE, DEACTIVATE,
++// VERSION, HELP and FAULT:
++//   QUIT FORCE/S     close aMule, with no exit requester
++//   ADDLINK LINK/A   an ed2k:// or magnet link to download
++//   CONNECT          connect, as the Connect button (ED2K and Kad, as the
++//                    preferences have them)
++//   DISCONNECT       disconnect (stop trying), Kad too
++//   STATUS           RESULT: "ED2K KAD", each 1 when connected, else 0
++#include <wx/openlayout/arexx.h>
++#include "DownloadQueue.h"
++#include "ServerConnect.h"
++#include "Preferences.h"
++
++static wxARexxPort *s_amigaRexx;
++
++static void AmigaRexxOpen()
++{
++	if (s_amigaRexx) {
++		return;
++	}
++	s_amigaRexx = new wxARexxPort(wxT("AMULE"), wxString(wxT("aMule ")) + wxString(VERSION));
++	s_amigaRexx->Add(wxT("ADDLINK"), wxT("LINK/A"), [](wxARexxCommand &c) {
++		if (!theApp->downloadqueue || theApp->IsOnShutDown()) {
++			c.SetError(20);
++		} else if (!theApp->downloadqueue->AddLink(c.Str(0))) {
++			c.SetError(10);
++		}
++	});
++	s_amigaRexx->Add(wxT("CONNECT"), wxT(""), [](wxARexxCommand &c) {
++		if (!theApp->serverconnect || theApp->IsOnShutDown()) {
++			c.SetError(20);
++			return;
++		}
++		if (thePrefs::GetNetworkED2K() && !theApp->IsConnectedED2K() && !theApp->serverconnect->IsConnecting()) {
++			theApp->serverconnect->ConnectToAnyServer();
++		}
++		if (thePrefs::GetNetworkKademlia() && !theApp->IsKadRunning()) {
++			theApp->StartKad();
++		}
++	});
++	s_amigaRexx->Add(wxT("DISCONNECT"), wxT(""), [](wxARexxCommand &c) {
++		if (!theApp->serverconnect || theApp->IsOnShutDown()) {
++			c.SetError(20);
++			return;
++		}
++		if (theApp->serverconnect->IsConnecting()) {
++			theApp->serverconnect->StopConnectionTry();
++		} else if (theApp->IsConnectedED2K()) {
++			theApp->serverconnect->Disconnect();
++		}
++		if (theApp->IsKadRunning()) {
++			theApp->StopKad();
++		}
++	});
++	s_amigaRexx->Add(wxT("STATUS"), wxT(""), [](wxARexxCommand &c) {
++		c.SetResult(wxString::Format(wxT("%d %d"), theApp->IsConnectedED2K() ? 1 : 0,
++					     theApp->IsConnectedKad() ? 1 : 0));
++	});
++	// QUIT of its own: the toolkit's plain QUIT closes the window as its
++	// close gadget does, which asks "Do you really want to exit?" when the
++	// preferences say so. aMule has nothing unsaved (downloads go on next
++	// time), so QUIT and QUIT FORCE both close it with no requester.
++	s_amigaRexx->Add(wxT("QUIT"), wxT("FORCE/S"), [](wxARexxCommand &c) {
++		if (!theApp->amuledlg || theApp->IsOnShutDown()) {
++			c.SetError(20);
++			return;
++		}
++		theApp->amuledlg->Close(true);
++	});
++	s_amigaRexx->Open();
++}
++
++static void AmigaRexxClose()
++{
++	delete s_amigaRexx;
++	s_amigaRexx = NULL;
++}
++#endif
++
++
+ int CamuleGuiApp::OnExit()
+ {
++#ifdef __AMIGA__
++	AmigaRexxClose();
++#endif
+ 	delete core_timer;
+ 
+ 	return CamuleApp::OnExit();
+@@ -371,6 +456,10 @@
+ 	core_timer->Start(CORE_TIMER_PERIOD);
+ 	amuledlg->StartGuiTimer();
+ 
++#ifdef __AMIGA__
++	AmigaRexxOpen();
++#endif
++
+ #ifdef __WXMAC__
+ 	// This tells the OS to notice the ed2kHelperScript.app inside aMule.app.
+ 	// ed2kHelperScript.app describes itself (Info.plist) as handling ed2k URLs.

@@ -88,5 +88,8 @@ tail -5 "$B/make.log"
 A=$(find "$B" -type f -name amule -perm -u+x | head -1)
 if [ -n "$A" ]; then
     "$TOOLCHAIN/bin/m68k-amigaos-strip" -o "$OUT/amule" "$A" || cp "$A" "$OUT/amule"
+    # the ARexx example (README: ARexx)
+    mkdir -p "$OUT/Rexx"; cp "$HERE"/Rexx/*.rexx "$OUT/Rexx/"
+    mkdir -p "$OUT/tests"; cp "$HERE/tests/arexx.rexx" "$OUT/tests/"   # the ARexx port test
     ls -l "$OUT/amule"
 fi

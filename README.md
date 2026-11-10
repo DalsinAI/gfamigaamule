@@ -22,6 +22,34 @@ The first run fetches the GFOpenWX Toolkit at the commit `amule.lock` pins and b
 
 The first build is the monolithic `amule` (window app). The daemon, remote GUI, web server, UPnP, GeoIP and translations are off for now.
 
+## ARexx
+
+aMule has an ARexx port, `AMULE.1`, from the GFOpenWX Toolkit's `wxARexxPort` on arexx.class (patch 0013).
+
+| Command | Does |
+| --- | --- |
+| `ADDLINK LINK/A` | an `ed2k://` or magnet link to download (RC 10 when aMule doesn't take it) |
+| `CONNECT` | connect, as the Connect button (ED2K and Kad, as the preferences have them) |
+| `DISCONNECT` | disconnect, or stop trying; Kad too |
+| `STATUS` | RESULT: `ED2K KAD`, each 1 when connected, else 0 |
+| `QUIT FORCE/S` | close aMule with no "Do you really want to exit?" requester (FORCE changes nothing: aMule has nothing unsaved) |
+| `ACTIVATE`, `DEACTIVATE`, `VERSION`, `HELP`, `FAULT` | the toolkit's standard commands |
+
+```
+/* aMule: connect and fetch a file */
+OPTIONS RESULTS
+ADDRESS 'AMULE.1'
+'CONNECT'
+'ADDLINK ed2k://|file|example.lha|123456|0123456789ABCDEF0123456789ABCDEF|/'
+'STATUS'
+PARSE VAR result ed2k kad
+SAY 'ED2K' ed2k 'Kad' kad
+```
+
+`Rexx/Status.rexx` (in the Rexx drawer beside the program) is an example. `tests/arexx.rexx` (in the tests drawer beside it) checks the whole port: `rx tests/arexx.rexx` with the program running; it QUITs the program at the end.
+
+Return codes, as OS 3.2's arexx.class: 0 OK, 5 warning, 10 error, 20 unknown command or failure.
+
 ## Licence
 
 aMule is GPL v2 or later; the patches and build files here are under the same licence.
