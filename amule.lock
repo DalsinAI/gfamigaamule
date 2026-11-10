@@ -16,7 +16,7 @@ GFOPENBOOST_SHA256=b00ac87dbb84899593c5f74e45ddd38f6706a10964435517c1a04fd265286
 # (gfopenwxtoolkit #23), built from source until a release has it; an
 # SDK release goes in WXT_SDK_URL and WXT_SDK_SHA256 again then
 WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
-WXT_COMMIT=80cd7f227bc392931f8a1eb555a3021156476f1d
+WXT_COMMIT=3f2f2f6105e3936c7b6194c84bcd46cd76a5e666
 WXT_SDK_URL=
 WXT_SDK_SHA256=
 # event.library (GFOpenEvent 1.1 RC2), which GFOpenBoost's Asio reactor
