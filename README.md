@@ -4,6 +4,10 @@ aMule, the eD2k and Kad file-sharing client, for AmigaOS 3 (68040; the FPU is us
 
 aMule and the libraries it uses are fetched at build time; nothing third-party is kept in this repository.
 
+## Needs
+
+`gfopenlayout.library` 12 or later in `LIBS:`. aMule's windows are drawn by GFOpenLayout through that library, not a copy built into the program (GFOffice Libs ships version 25). Without it aMule says "This needs gfopenlayout.library 12 or later in LIBS:" and stops.
+
 ## Building
 
 ```

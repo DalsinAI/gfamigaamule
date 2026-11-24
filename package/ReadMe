@@ -33,6 +33,8 @@ Needs
 - AmigaOS 3.2, a 68040 or later, a TCP/IP stack (bsdsocket.library).
 - event.library 1.1 and regex.library 1.0 (included).
 - gfopentls.library in LIBS: for HTTPS.
+- gfopenlayout.library 12 or later in LIBS: (the windows are drawn
+  through it; GFOffice Libs ships 25). Without it aMule says so and stops.
 
 aMule is free software under the GNU General Public License, version 2
 or later; its source is at https://github.com/amule-project/amule. The
